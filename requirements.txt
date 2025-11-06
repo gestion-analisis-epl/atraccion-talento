@@ -1,0 +1,8 @@
+# Framework principal
+streamlit>=1.51.0
+# Manejo de datos
+pandas>=2.0.0
+# Visualización
+plotly>=5.17.0
+# Conexión a Supabase
+st-supabase-connection==2.1.1

@@ -1,0 +1,108 @@
+import streamlit as st
+from st_supabase_connection import SupabaseConnection
+import pandas as pd
+
+conn = st.connection("supabase", type=SupabaseConnection)
+consulta = st.selectbox("¿Qué deseas consulta?", ("Altas", "Bajas", "Vacantes", "Todos los registros"), index=None, placeholder="Selecciona una opción", key="consulta")
+st.write("---")
+
+# ======================
+# CONSULTAR UNA ALTA
+# ======================
+if consulta == "Altas":
+    response =conn.table("altas").select("*").execute()
+    st.write("## Datos encontrados en Altas")
+    df_altas = pd.DataFrame(response.data)
+    columns_names = {
+        'id': 'ID',
+        'id_registro': 'ID General',
+        'fecha_alta': 'Fecha de alta',
+        'empresa_alta': 'Empresa',
+        'puesto_alta': 'Puesto',
+        'plaza_alta': 'Plaza',
+        'area_alta': 'Función de área',
+        'contratados_alta': 'Contratados',
+        'medio_reclutamiento_alta': 'Medio de reclutamiento',
+        'responsable_alta': 'Responsable'
+    }
+    df_altas = df_altas.rename(columns=columns_names)
+    st.dataframe(df_altas, hide_index=True, column_order=["ID", "Fecha de alta", "Empresa", "Puesto", "Plaza",
+                                                          "Función de área", "Contratados", "Medio de reclutamiento", "Responsable"])
+
+# ======================
+# CONSULTAR UNA BAJA
+# ======================
+elif consulta == "Bajas":
+    response = conn.table("bajas").select("*").execute()
+    st.write("## Datos encontrados en Bajas")
+    df_bajas = pd.DataFrame(response.data)
+    df_bajas = df_bajas.rename(columns={
+        "id": "ID", 
+        "empresa_baja": "Empresa",
+        "puesto_baja": "Puesto",
+        "plaza_baja": "Plaza",
+        "fecha_ingreso": "Fecha de ingreso",
+        "fecha_baja": "Fecha de baja", 
+        "tipo_baja": "Tipo de baja",
+        "motivo_baja": "Motivo de la baja"
+    })
+    st.dataframe(df_bajas, hide_index=True, column_order=["ID", "Empresa", "Puesto", "Plaza", "Fecha de ingreso","Fecha de baja", "Tipo de baja", "Motivo de la baja"])
+
+# ======================
+# CONSULTAR VACANTES
+# ======================
+elif consulta == "Vacantes":
+    response =conn.table("vacantes").select("*").execute()
+    st.write("## Datos encontrados en Vacantes")
+    df_vacantes = pd.DataFrame(response.data)
+    columns_name = {
+        "id": "ID",
+        "id_registro": "ID General",
+        "fecha_solicitud": "Fecha de solicitud",
+        "tipo_solicitud": "Tipo de solicitud",
+        "estatus_solicitud": "Estatus de solicitud",
+        "fase_proceso": "Fase del proceso",
+        "fecha_avance": "Fecha del avance",
+        "fecha_autorizacion": "Fecha de autorización",
+        "puesto_vacante": "Puesto",
+        "plaza_vacante": "Plaza",
+        "empresa_vacante": "Empresa",
+        "funcion_area_vacante": "Función de área",
+        "vacantes_solicitadas": "Vacantes solicitadas",
+        "vacantes_contratados": "Contratados",
+        "responsable_vacante": "Responsable",
+        "comentarios_vacante": "Comentarios",
+        "tipo_reclutamiento": "Tipo de reclutamiento",
+        "medio_reclutamiento_vacante": "Medio de reclutamiento",
+        "fecha_cobertura": "Fecha de cobertura",
+        "dias_cobertura": "Días de cobertura"   
+    }
+    df_vacantes = df_vacantes.rename(columns=columns_name)
+    st.dataframe(df_vacantes, hide_index=True, column_order=["ID", "Fecha de solicitud", "Tipo de solicitud", "Estatus de solicitud",
+                                                             "Fase del proceso", "Fecha del avance", "Fecha de autorización",
+                                                             "Puesto", "Plaza", "Empresa", "Función de área", "Vacantes solicitadas",
+                                                             "Contratados", "Responsable", "Comentarios", "Tipo de reclutamiento",
+                                                             "Medio de reclutamiento", "Fecha de cobertura", "Días de cobertura"])
+
+# ==============================
+# CONSULTAR TODOS LOS REGISTROS
+# ==============================    
+elif consulta == "Todos los registros":
+    response =conn.table("registros_rh").select("*").execute()
+    st.write("## Datos encontrados en Registros RH")
+    df_registros_rh = pd.DataFrame(response.data)
+    columns_name = {
+        "id": "ID",
+        "tipo_registro": "Tipo de registro",
+        "fecha_creacion": "Fecha de creación del registro",
+        "puesto": "Puesto",
+        "empresa": "Empresa",
+        "plaza": "Plaza",
+        "area": "Función de área"
+    }
+    df_registros_rh = df_registros_rh.rename(columns=columns_name)
+    st.dataframe(df_registros_rh, hide_index=True, column_order=["ID", "Tipo de registro", "Puesto", "Empresa",
+                                                                 "Plaza", "Función de área"] )
+    
+else:
+    st.info("No se encontraron registros.")
