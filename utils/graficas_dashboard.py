@@ -198,12 +198,20 @@ def grafica_contrataciones_mes(df_altas_filtrado):
             df = df_altas_filtrado.copy()
             df = df[df['contratados_alta'].astype(int) > 0]
             if not df.empty:
-                df['mes_alta'] = df['fecha_alta'].dt.month_name(locale='es_ES')
-                meses_ordenados = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 
-                                   'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+                # Mapeo manual de meses
+                meses = {
+                    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+                    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+                    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+                }
+                df['mes_alta'] = df['fecha_alta'].dt.month.map(meses)
+
+                meses_ordenados = list(meses.values())
                 df['mes_alta'] = pd.Categorical(df['mes_alta'], categories=meses_ordenados, ordered=True)
-                resumen = df.groupby('mes_alta', as_index=False)['contratados_alta'].sum().reset_index()
-                fig =  px.area(
+
+                resumen = df.groupby('mes_alta', as_index=False)['contratados_alta'].sum()
+
+                fig = px.area(
                     resumen,
                     x='mes_alta',
                     y='contratados_alta',
@@ -219,7 +227,7 @@ def grafica_contrataciones_mes(df_altas_filtrado):
             st.info('No se encontró información de contrataciones.')
     except Exception as e:
         st.error(f'Error al generar la gráfica de contrataciones por mes: {e}')
-        
+
         
 def grafica_contrataciones_mes_medio_reclutamiento(df_altas_filtrado):
     """
@@ -233,26 +241,47 @@ def grafica_contrataciones_mes_medio_reclutamiento(df_altas_filtrado):
             df = df_altas_filtrado.copy()
             df = df[df['contratados_alta'].astype(int) > 0]
             if not df.empty:
-                df['mes_alta'] = df['fecha_alta'].dt.month_name(locale='es_ES')
-                bar_info = df.groupby(['mes_alta', 'medio_reclutamiento_alta'])['contratados_alta'].sum().reset_index()
-                line_info = df.groupby('mes_alta', as_index=False)['contratados_alta'].sum()
-                meses_ordenados = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 
-                                   'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+                # Mapeo manual de meses
+                meses = {
+                    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+                    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+                    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+                }
+                df['mes_alta'] = df['fecha_alta'].dt.month.map(meses)
+
+                meses_ordenados = list(meses.values())
+
+                bar_info = (
+                    df.groupby(['mes_alta', 'medio_reclutamiento_alta'])['contratados_alta']
+                    .sum()
+                    .reset_index()
+                )
+                line_info = (
+                    df.groupby('mes_alta', as_index=False)['contratados_alta']
+                    .sum()
+                )
+
                 bar_info['mes_alta'] = pd.Categorical(bar_info['mes_alta'], categories=meses_ordenados, ordered=True)
                 line_info['mes_alta'] = pd.Categorical(line_info['mes_alta'], categories=meses_ordenados, ordered=True)
+
                 bar_info = bar_info.sort_values('mes_alta')
                 line_info = line_info.sort_values('mes_alta')
+
                 fig = px.bar(
                     bar_info,
                     x='mes_alta',
                     y='contratados_alta',
                     color='medio_reclutamiento_alta',
                     title='Contrataciones por Mes y Medio de Reclutamiento',
-                    labels={'mes_alta': 'Mes', 'contratados_alta': 'Contrataciones', 'medio_reclutamiento_alta': 'Medio de Reclutamiento'},
+                    labels={
+                        'mes_alta': 'Mes',
+                        'contratados_alta': 'Contrataciones',
+                        'medio_reclutamiento_alta': 'Medio de Reclutamiento'
+                    },
                     barmode='group',
                     color_discrete_sequence=px.colors.qualitative.Pastel
-                
                 )
+
                 fig.add_scatter(
                     x=line_info['mes_alta'],
                     y=line_info['contratados_alta'],
@@ -261,6 +290,8 @@ def grafica_contrataciones_mes_medio_reclutamiento(df_altas_filtrado):
                     line=dict(color='black', width=4),
                     marker=dict(size=8)
                 )
-                st.plotly_chart(fig, width='stretch')
+
+                st.plotly_chart(fig, use_container_width=True)
+
     except Exception as e:
         st.error(f'Error al generar la gráfica de contrataciones por mes y medio: {e}')
