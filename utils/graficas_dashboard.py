@@ -35,7 +35,7 @@ def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
                     labels={'contratados_alta': 'Contrataciones', 'primer_nombre': 'Ejecutivo'}
                 )
                 fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
-                st.plotly_chart(fig, width='stretch')
+                st.plotly_chart(fig)
             else:
                 st.info('No se encontró información de contrataciones en el periodo seleccionado.')
         else:
@@ -57,7 +57,8 @@ def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
             df = df[df['contratados_alta'].astype(int) > 0]
             if not df.empty:
                 resumen = df.groupby('medio_reclutamiento_alta')['contratados_alta'].sum().reset_index()
-                resumen = resumen.sort_values('contratados_alta', ascending=False).head(10)
+                datos_a_mostrar = st.number_input('¿Cuántos medios desea observar?', min_value=1, max_value=resumen.shape[0])
+                resumen = resumen.sort_values('contratados_alta', ascending=False).head(datos_a_mostrar)
                 # Calcular total y porcentajes
                 total_contrataciones = resumen['contratados_alta'].sum()
                 resumen['porcentaje'] = (resumen['contratados_alta'] / total_contrataciones * 100).round(1)
@@ -76,7 +77,7 @@ def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
                 )
                 #fig.update_traces(textposition='outside')
                 fig.update_layout(yaxis=dict(tickmode="linear"), showlegend=False, font=dict(weight='bold', size=13))
-                st.plotly_chart(fig, width='stretch')
+                st.plotly_chart(fig)
             else:
                 st.info('No se encontró información de contrataciones en el periodo seleccionado.')
         else:
@@ -118,19 +119,24 @@ def grafica_vacantes_por_empresa(df_vacantes):
                 # Resumen por empresa
                 resumen = df_grafico.groupby('Empresa')['Vacantes'].sum().reset_index()
                 resumen = resumen.sort_values('Vacantes', ascending=False)
-                st.write('### Resumen de Vacantes por Empresa')
-                st.dataframe(resumen, hide_index=True)
+                with st.container():
+                    st.write('### Resumen de Vacantes por Empresa')
+                    
+                    col1, col2 = st.columns([2, 2])
+                    with col1:
+                        st.dataframe(resumen, hide_index=True)
 
-                # Gráfico de pie
-                fig = px.pie(
-                    resumen, 
-                    values='Vacantes', 
-                    names='Empresa', 
-                    color='Empresa',
-                    color_discrete_sequence=px.colors.sequential.ice_r
-                )
-                fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
-                st.plotly_chart(fig, width='stretch')
+                    # Gráfico de pie
+                    fig = px.pie(
+                        resumen, 
+                        values='Vacantes', 
+                        names='Empresa', 
+                        color='Empresa',
+                        color_discrete_sequence=px.colors.sequential.ice_r
+                    )
+                    fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
+                    with col2:
+                        st.plotly_chart(fig)
             else:
                 st.info('No se encontraron vacantes.')
         else:
@@ -171,7 +177,7 @@ def grafica_vacantes_por_area(df_vacantes):
                     title='Distribución de Vacantes por Función de Área'
                 )
                 fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
-                st.plotly_chart(fig, width='stretch')
+                st.plotly_chart(fig)
             else:
                 st.info('No se encontraron vacantes.')
         else:
@@ -206,7 +212,7 @@ def grafica_contrataciones_mes(df_altas_filtrado):
                     color_discrete_sequence=px.colors.sequential.dense,
                     markers=True
                 )
-                st.plotly_chart(fig, width='stretch')
+                st.plotly_chart(fig)
             else:
                 st.info('No se encontró información de contrataciones en el periodo seleccionado.')
         else:
