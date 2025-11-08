@@ -1,6 +1,10 @@
 import streamlit as st
 from st_supabase_connection import SupabaseConnection
 import pandas as pd
+from utils.auth import require_login
+
+# Requerir autenticación antes de mostrar cualquier contenido
+require_login()
 
 conn = st.connection("supabase", type=SupabaseConnection)
 consulta = st.selectbox("¿Qué deseas consulta?", ("Altas", "Bajas", "Vacantes", "Todos los registros"), index=None, placeholder="Selecciona una opción", key="consulta")
