@@ -14,6 +14,11 @@ from utils.graficas_dashboard import (
     grafica_vacantes_por_area
 )
 
+from utils.auth import require_login
+
+# Requerir autenticación antes de mostrar cualquier contenido
+require_login()
+
 conn = st.connection("supabase", type=SupabaseConnection)
 
 # ======================
