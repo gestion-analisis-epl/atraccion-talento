@@ -9,14 +9,18 @@ from config.opciones import (
      ESTATUS_SOLICITUD, FASE_PROCESO, TIPO_RECLUTAMIENTO
 )
 
+from utils.auth import require_login
+
+# Requerir autenticación antes de mostrar cualquier contenido
+require_login()
+
 # Initialize Supabase connection
 conn = st.connection("supabase", type=SupabaseConnection)
 
 st.write("## Formulario de Atracción de Talento")
 st.write("Este formulario permite registrar, actualizar o eliminar datos de la base de datos de atracción de talento.")
 st.write("---")
-
-
+ 
 opcion = st.selectbox(
     "¿Qué desea registrar en la base de datos",
     (
