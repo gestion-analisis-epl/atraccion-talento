@@ -13,7 +13,7 @@ from config.db_utils import insertar_maestra, insertar_alta, insertar_baja, inse
 def actualizar_vacante(conn):
     st.write("### Actualización de vacante existente")
     try:
-        response = conn.table("vacantes").select("*").gt('vacantes_solicitadas', 0).execute()
+        response = conn.table("vacantes").select("*").execute()
         df = pd.DataFrame(response.data)
         df = df.rename(columns={
             "id": "ID",
@@ -44,7 +44,7 @@ def actualizar_vacante(conn):
         event = st.dataframe(
             df,
             column_config={"id_registro": None},
-            column_order=["ID","Fecha de solicitud", "Puesto", "Plaza", "Empresa"],
+            column_order=["ID","Fecha de solicitud", "Puesto", "Plaza", "Empresa", "Fecha de autorización", "Fecha de cobertura"],
             hide_index=True,
             width="stretch",
             on_select="rerun",

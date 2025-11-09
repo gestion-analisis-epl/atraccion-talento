@@ -1,6 +1,7 @@
 import streamlit as st
 from st_supabase_connection import SupabaseConnection
 import pandas as pd
+import datetime as dt
 from utils.auth import require_login
 
 # Requerir autenticación antes de mostrar cualquier contenido
@@ -59,6 +60,31 @@ elif consulta == "Vacantes":
     response =conn.table("vacantes").select("*").execute()
     st.write("## Datos encontrados en Vacantes")
     df_vacantes = pd.DataFrame(response.data)
+    
+    # Convertir fechas a datetime
+    df_vacantes['fecha_solicitud'] = pd.to_datetime(df_vacantes['fecha_solicitud'], errors='coerce')
+    df_vacantes['fecha_autorizacion'] = pd.to_datetime(df_vacantes['fecha_autorizacion'], errors='coerce')
+    df_vacantes['fecha_cobertura'] = pd.to_datetime(df_vacantes['fecha_cobertura'], errors='coerce')
+    
+    # Calcular días de cobertura
+    # Si existe fecha_autorización: fecha_autorización - fecha_cobertura
+    # Si no existe fecha_autorización: fecha_solicitud - fecha_cobertura
+    def calcular_dias_cobertura(row):
+        if pd.notna(row['fecha_cobertura']):
+            if pd.notna(row['fecha_autorizacion']):
+                return (row['fecha_cobertura'] - row['fecha_autorizacion']).days
+            elif pd.notna(row['fecha_solicitud']):
+                return (row['fecha_cobertura'] - row['fecha_solicitud']).days
+        elif pd.isna(row['fecha_cobertura']):
+            if pd.notna(row['fecha_autorizacion']):
+                return (dt.datetime.today() - row['fecha_autorizacion']).days
+            elif pd.notna(row['fecha_solicitud']):
+                return (dt.datetime.today() - row['fecha_solicitud']).days
+        else:
+            return None
+    
+    df_vacantes['dias_cobertura'] = df_vacantes.apply(calcular_dias_cobertura, axis=1)
+    
     columns_name = {
         "id": "ID",
         "id_registro": "ID General",
@@ -79,7 +105,7 @@ elif consulta == "Vacantes":
         "tipo_reclutamiento": "Tipo de reclutamiento",
         "medio_reclutamiento_vacante": "Medio de reclutamiento",
         "fecha_cobertura": "Fecha de cobertura",
-        "dias_cobertura": "Días de cobertura"   
+        "dias_cobertura": "Días de cobertura"
     }
     df_vacantes = df_vacantes.rename(columns=columns_name)
     st.dataframe(df_vacantes, hide_index=True, column_order=["ID", "Fecha de solicitud", "Tipo de solicitud", "Estatus de solicitud",

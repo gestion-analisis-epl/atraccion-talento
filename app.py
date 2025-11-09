@@ -79,7 +79,13 @@ def mostrar_app():
         icon = "🔍"
     )
     
-    pg = st.navigation(pages=[form_page, dashboard_page, show_data_page])
+    import_data_page = st.Page(
+        page="pages/import.py",
+        title="Importar Datos",
+        icon="📥"
+    )
+    
+    pg = st.navigation(pages=[form_page, dashboard_page, show_data_page, import_data_page])
     pg.run()
 
 # ======================

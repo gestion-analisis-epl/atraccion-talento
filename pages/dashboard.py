@@ -358,7 +358,7 @@ try:
                          "area_alta": "Área",
                          "contratados_alta": None,
                          "medio_reclutamiento_alta": "Medio de reclutamiento",
-                         "responsable_alta": "Ejecutivo de reclutamiento"
+                         "responsable_alta": "Ejecutivo de reclutamiento",
                      }, hide_index=True, width="stretch")
     else:
         st.write("No hay datos disponibles para mostrar.")
@@ -376,8 +376,10 @@ st.write("### 📊 Análisis visual")
 # Gráficas de contrataciones (con filtro)
 st.write("#### Contrataciones por Ejecutivo")
 grafica_contrataciones_por_ejecutivo(df_altas_filtrado)
+
 st.write("#### Contrataciones por Medio de Reclutamiento")
 grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado)
+
 st.write("#### Contrataciones por Mes")
 grafica_contrataciones_mes(df_altas_filtrado)
 # grafica_contrataciones_mes_medio_reclutamiento(df_altas_filtrado)

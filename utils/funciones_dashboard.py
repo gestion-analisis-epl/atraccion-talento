@@ -34,18 +34,31 @@ def calcular_dias_cobertura(row):
     - Si vacantes_solicitadas > 0: fecha_hoy - fecha_solicitud
     """
     try:
-        fecha_solicitud = pd.to_datetime(row['fecha_solicitud'])
-        
-        if row['vacantes_contratados'] > 0 and pd.notna(row.get('fecha_cobertura')):
-            fecha_cobertura = pd.to_datetime(row['fecha_cobertura'])
-            dias = (fecha_cobertura - fecha_solicitud).days
-        elif row['vacantes_solicitadas'] > 0:
-            fecha_hoy = datetime.now()
-            dias = (fecha_hoy - fecha_solicitud).days
-        else:
-            dias = None
+        if pd.isna(row['fecha_autorizacion']):
+            fecha_solicitud = pd.to_datetime(row['fecha_solicitud'])
             
-        return dias
+            if row['vacantes_contratados'] > 0 and pd.notna(row.get('fecha_cobertura')):
+                fecha_cobertura = pd.to_datetime(row['fecha_cobertura'])
+                dias = (fecha_cobertura - fecha_solicitud).days
+            elif row['vacantes_solicitadas'] > 0:
+                fecha_hoy = datetime.now()
+                dias = (fecha_hoy - fecha_solicitud).days
+            else:
+                dias = None
+                
+            return dias
+        else:
+            fecha_autorizacion = pd.to_datetime(row['fecha_autorizacion'])
+            if row['vacantes_contratados'] > 0 and pd.notna(row.get('fecha_cobertura')):
+                fecha_cobertura = pd.to_datetime(row['fecha_cobertura'])
+                dias = (fecha_cobertura - fecha_autorizacion).days
+                return dias
+            elif row['vacantes_solicitadas'] > 0:
+                fecha_hoy = datetime.now()
+                dias = (fecha_hoy - fecha_autorizacion).days
+                return dias
+            else:
+                return None
     except:
         return None
 

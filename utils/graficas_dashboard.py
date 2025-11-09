@@ -101,16 +101,17 @@ def grafica_vacantes_por_empresa(df_vacantes):
 
             if not df.empty:
                 # Mostrar detalle de vacantes con nombre de la vacante y empresa
-                df_detalle = df[['empresa_vacante', 'puesto_vacante', 'vacantes_solicitadas']].copy()
+                df_detalle = df[['empresa_vacante', 'puesto_vacante', 'plaza_vacante', 'vacantes_solicitadas']].copy()
                 df_detalle = df_detalle.rename(columns={
                     "empresa_vacante": "Empresa", 
                     "puesto_vacante": "Puesto", 
+                    "plaza_vacante": "Plaza",
                     "vacantes_solicitadas": "Vacantes"
                 })
                 # df_detalle['Empresa'] = df_detalle['Empresa'].replace(empresas_map)
                 df_grafico = df_detalle.copy()
                 df_grafico['Empresa'] = df_grafico['Empresa'].replace(empresas_map)
-                df_detalle = df_detalle.groupby(['Empresa', 'Puesto'], as_index=False).sum()
+                df_detalle = df_detalle.groupby(['Empresa', 'Puesto', 'Plaza'], as_index=False).agg({'Vacantes': 'sum'})
 
                 st.write('### Detalle de Vacantes por Empresa')
                 df_detalle = df_detalle.sort_values(by='Vacantes', ascending=False)
