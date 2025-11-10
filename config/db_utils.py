@@ -1,5 +1,9 @@
 from datetime import datetime, date
 from typing import Any, Dict
+import pytz
+
+# Zona horaria de México
+MEXICO_TZ = pytz.timezone('America/Mexico_City')
 
 # ------------------ Función maestra ------------------
 def insertar_maestra(conn, tipo_registro: str, data: Dict[str, Any]) -> int:
@@ -11,7 +15,7 @@ def insertar_maestra(conn, tipo_registro: str, data: Dict[str, Any]) -> int:
     
     payload = {
         "tipo_registro": tipo_registro.strip().capitalize(),
-        "fecha_creacion": datetime.now().isoformat(),
+        "fecha_creacion": datetime.now(MEXICO_TZ).isoformat(),
         "puesto": str(data.get("puesto", "")).strip().upper(),
         "empresa": str(data.get("empresa", "")).strip(),
         "plaza": str(data.get("plaza", "")).strip(),

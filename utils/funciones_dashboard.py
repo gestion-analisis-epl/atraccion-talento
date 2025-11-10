@@ -4,6 +4,7 @@ import plotly.express as px
 from st_supabase_connection import SupabaseConnection
 from datetime import datetime, timedelta
 import calendar
+import pytz
 
 empresas_map = {
     "CORPORATIVO PUBLICITARIO MAO SA DE CV": 'MAO',
@@ -27,21 +28,30 @@ meses_es = {
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
 
+# Zona horaria de México
+MEXICO_TZ = pytz.timezone('America/Mexico_City')
+
 def calcular_dias_cobertura(row):
     """
     Calcula los días de cobertura según las reglas:
-    - Si vacantes_contratados > 0: fecha_cobertura - fecha_solicitud
-    - Si vacantes_solicitadas > 0: fecha_hoy - fecha_solicitud
+    - Si vacantes_contratados > 0: fecha_cobertura - fecha_solicitud (o fecha_autorizacion si existe)
+    - Si vacantes_solicitadas > 0: fecha_hoy - fecha_solicitud (o fecha_autorizacion si existe)
     """
     try:
+        # Obtener fecha actual en zona horaria de México
+        fecha_hoy = datetime.now(MEXICO_TZ).replace(hour=0, minute=0, second=0, microsecond=0)
+        
         if pd.isna(row['fecha_autorizacion']):
             fecha_solicitud = pd.to_datetime(row['fecha_solicitud'])
+            if fecha_solicitud.tzinfo is None:
+                fecha_solicitud = MEXICO_TZ.localize(fecha_solicitud)
             
             if row['vacantes_contratados'] > 0 and pd.notna(row.get('fecha_cobertura')):
                 fecha_cobertura = pd.to_datetime(row['fecha_cobertura'])
+                if fecha_cobertura.tzinfo is None:
+                    fecha_cobertura = MEXICO_TZ.localize(fecha_cobertura)
                 dias = (fecha_cobertura - fecha_solicitud).days
             elif row['vacantes_solicitadas'] > 0:
-                fecha_hoy = datetime.now()
                 dias = (fecha_hoy - fecha_solicitud).days
             else:
                 dias = None
@@ -49,12 +59,16 @@ def calcular_dias_cobertura(row):
             return dias
         else:
             fecha_autorizacion = pd.to_datetime(row['fecha_autorizacion'])
+            if fecha_autorizacion.tzinfo is None:
+                fecha_autorizacion = MEXICO_TZ.localize(fecha_autorizacion)
+                
             if row['vacantes_contratados'] > 0 and pd.notna(row.get('fecha_cobertura')):
                 fecha_cobertura = pd.to_datetime(row['fecha_cobertura'])
+                if fecha_cobertura.tzinfo is None:
+                    fecha_cobertura = MEXICO_TZ.localize(fecha_cobertura)
                 dias = (fecha_cobertura - fecha_autorizacion).days
                 return dias
             elif row['vacantes_solicitadas'] > 0:
-                fecha_hoy = datetime.now()
                 dias = (fecha_hoy - fecha_autorizacion).days
                 return dias
             else:

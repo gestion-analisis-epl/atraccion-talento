@@ -1,10 +1,14 @@
 import streamlit as st
 from datetime import datetime, date
+import pytz
 from config.opciones import (
      PLAZAS, EMPRESAS, AREAS, CANALES_RECLUTAMIENTO, RESPONSABLES_RECLUTAMIENTO, 
      ESTATUS_SOLICITUD, FASE_PROCESO, TIPO_RECLUTAMIENTO
 )
 from config.db_utils import insertar_maestra, insertar_alta, insertar_baja, insertar_vacante
+
+# Zona horaria de México
+MEXICO_TZ = pytz.timezone('America/Mexico_City')
 
 # ======================
 # REGISTRAR UNA ALTA
@@ -12,7 +16,7 @@ from config.db_utils import insertar_maestra, insertar_alta, insertar_baja, inse
 def registrar_alta(conn):
     st.write("### Formulario de altas")
     # Campos del formulario
-    fecha_alta = st.date_input("Fecha de alta ", value=datetime.now().date(), key="fecha_alta")
+    fecha_alta = st.date_input("Fecha de alta ", value=datetime.now(MEXICO_TZ).date(), key="fecha_alta")
     puesto_alta = st.text_input("Puesto a registrar")
     empresa_alta = st.selectbox("Empresa", EMPRESAS, index=2)    
     plaza_alta = st.selectbox("Plaza", PLAZAS, index=9)
@@ -55,9 +59,9 @@ def registrar_baja(conn):
     empresa_baja = st.selectbox("Empresa", EMPRESAS, index=2)
     plaza_baja = st.selectbox("Plaza", PLAZAS, index=9)
     area_baja = st.selectbox("Función de área", AREAS, index=1)
-    fecha_ingreso = st.date_input("Fecha de ingreso", value=datetime.now().date(), key="fecha_ingreso")
+    fecha_ingreso = st.date_input("Fecha de ingreso", value=datetime.now(MEXICO_TZ).date(), key="fecha_ingreso")
     opt_baja = st.selectbox("¿Cuenta con fecha de baja?", ("SI", "NO"))
-    fecha_baja = st.date_input("Fecha de baja", value=datetime.now().date(), key="fecha_baja") if opt_baja == "SI" else None
+    fecha_baja = st.date_input("Fecha de baja", value=datetime.now(MEXICO_TZ).date(), key="fecha_baja") if opt_baja == "SI" else None
     tipo_baja = st.selectbox("Tipo de baja", ("INDUCIDA", "VOLUNTARIA"))
     motivo_baja = st.text_input("Motivo de baja")
     guardar_baja = st.button("Guardar", key="guardar_baja", type="primary")
@@ -98,18 +102,18 @@ def registrar_vacante(conn):
     empresa_vacante = st.selectbox("Empresa", EMPRESAS, index=2)
     funcion_area_vacante = st.selectbox("Función de área", AREAS, index=1)
     vacantes_solicitadas = st.number_input("Vacantes solicitadas", step=1, value=1, min_value=0)
-    fecha_solicitud = st.date_input("Fecha de solicitud ", value=datetime.now().date(), key="fecha_solicitud")
+    fecha_solicitud = st.date_input("Fecha de solicitud ", value=datetime.now(MEXICO_TZ).date(), key="fecha_solicitud")
     tipo_solicitud = st.selectbox("Tipo de solicitud", ("NUEVO", "REEMPLAZO", "SIN ESPECIFICAR"))
     estatus_solicitud = st.selectbox("Status de solicitud", ESTATUS_SOLICITUD, index=0)
     fase_proceso = st.selectbox("Fase del proceso", FASE_PROCESO, index=0)
-    fecha_avance = st.date_input("Fecha de avance del proceso ", value=datetime.now().date(), key="fecha_avance")
+    fecha_avance = st.date_input("Fecha de avance del proceso ", value=datetime.now(MEXICO_TZ).date(), key="fecha_avance")
     autorizacion = st.selectbox("¿La vacante fue autorizada?", ("SI", "NO"))
-    fecha_autorizacion = st.date_input("Fecha de autorizacion ", value=datetime.now().date(), key="fecha_autorizacion") if autorizacion == "SI" else date(1900, 1, 1)
+    fecha_autorizacion = st.date_input("Fecha de autorizacion ", value=datetime.now(MEXICO_TZ).date(), key="fecha_autorizacion") if autorizacion == "SI" else date(1900, 1, 1)
     contrataciones = st.selectbox("¿La posición fue ocupada?", ("SI", "NO"))
     if contrataciones == "SI":
         vacantes_contratadas = st.number_input("Vacantes contratadas", step=1, value=1, min_value=0)
         vacantes_solicitadas = vacantes_solicitadas - vacantes_contratadas
-        fecha_cobertura = st.date_input("Fecha de cobertura ", value=datetime.now().date(), key="fecha_cobertura")
+        fecha_cobertura = st.date_input("Fecha de cobertura ", value=datetime.now(MEXICO_TZ).date(), key="fecha_cobertura")
         tipo_reclutamiento_vacante = st.selectbox("Tipo de reclutamiento", TIPO_RECLUTAMIENTO, index=0)
         medio_reclutamiento_vacante = st.selectbox("Medio de reclutamiento", CANALES_RECLUTAMIENTO, index=0)
     else:

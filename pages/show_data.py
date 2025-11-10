@@ -2,10 +2,14 @@ import streamlit as st
 from st_supabase_connection import SupabaseConnection
 import pandas as pd
 import datetime as dt
+import pytz
 from utils.auth import require_login
 
 # Requerir autenticación antes de mostrar cualquier contenido
 require_login()
+
+# Zona horaria de México
+MEXICO_TZ = pytz.timezone('America/Mexico_City')
 
 conn = st.connection("supabase", type=SupabaseConnection)
 consulta = st.selectbox("¿Qué deseas consulta?", ("Altas", "Bajas", "Vacantes", "Todos los registros"), index=None, placeholder="Selecciona una opción", key="consulta")
@@ -61,25 +65,38 @@ elif consulta == "Vacantes":
     st.write("## Datos encontrados en Vacantes")
     df_vacantes = pd.DataFrame(response.data)
     
-    # Convertir fechas a datetime
+    # Convertir fechas a datetime con zona horaria de México
     df_vacantes['fecha_solicitud'] = pd.to_datetime(df_vacantes['fecha_solicitud'], errors='coerce')
     df_vacantes['fecha_autorizacion'] = pd.to_datetime(df_vacantes['fecha_autorizacion'], errors='coerce')
     df_vacantes['fecha_cobertura'] = pd.to_datetime(df_vacantes['fecha_cobertura'], errors='coerce')
     
     # Calcular días de cobertura
-    # Si existe fecha_autorización: fecha_autorización - fecha_cobertura
-    # Si no existe fecha_autorización: fecha_solicitud - fecha_cobertura
+    # Si existe fecha_autorización: fecha_cobertura - fecha_autorización
+    # Si no existe fecha_autorización: fecha_cobertura - fecha_solicitud
+    # Si no hay fecha_cobertura, usar fecha_hoy (México)
     def calcular_dias_cobertura(row):
+        # Obtener fecha actual en zona horaria de México
+        fecha_hoy = dt.datetime.now(MEXICO_TZ).replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # Determinar la fecha de referencia final (cobertura o hoy)
         if pd.notna(row['fecha_cobertura']):
-            if pd.notna(row['fecha_autorizacion']):
-                return (row['fecha_cobertura'] - row['fecha_autorizacion']).days
-            elif pd.notna(row['fecha_solicitud']):
-                return (row['fecha_cobertura'] - row['fecha_solicitud']).days
-        elif pd.isna(row['fecha_cobertura']):
-            if pd.notna(row['fecha_autorizacion']):
-                return (dt.datetime.today() - row['fecha_autorizacion']).days
-            elif pd.notna(row['fecha_solicitud']):
-                return (dt.datetime.today() - row['fecha_solicitud']).days
+            fecha_final = row['fecha_cobertura']
+            if fecha_final.tzinfo is None:
+                fecha_final = MEXICO_TZ.localize(fecha_final)
+        else:
+            fecha_final = fecha_hoy
+        
+        # Determinar la fecha de inicio (autorización o solicitud)
+        if pd.notna(row['fecha_autorizacion']):
+            fecha_inicio = row['fecha_autorizacion']
+            if fecha_inicio.tzinfo is None:
+                fecha_inicio = MEXICO_TZ.localize(fecha_inicio)
+            return (fecha_final - fecha_inicio).days
+        elif pd.notna(row['fecha_solicitud']):
+            fecha_inicio = row['fecha_solicitud']
+            if fecha_inicio.tzinfo is None:
+                fecha_inicio = MEXICO_TZ.localize(fecha_inicio)
+            return (fecha_final - fecha_inicio).days
         else:
             return None
     

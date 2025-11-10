@@ -4,7 +4,8 @@ import plotly.express as px
 from st_supabase_connection import SupabaseConnection
 from datetime import datetime, timedelta
 import calendar
-from utils.funciones_dashboard import calcular_dias_cobertura, obtener_rango_semana, filtrar_datos, empresas_map, meses_es
+import pytz
+from utils.funciones_dashboard import calcular_dias_cobertura, obtener_rango_semana, filtrar_datos, empresas_map, meses_es, MEXICO_TZ
 from utils.graficas_dashboard import (
     grafica_contrataciones_mes,
     grafica_contrataciones_mes_medio_reclutamiento,
@@ -82,7 +83,7 @@ años_disponibles = [int(año) for año in set(años_disponibles) if pd.notna(a�
 años_disponibles = sorted(años_disponibles, reverse=True)
 
 if not años_disponibles:
-    años_disponibles = [datetime.now().year]
+    años_disponibles = [datetime.now(MEXICO_TZ).year]
 
 # Interfaz de filtros
 col_f1, col_f2, col_f3, col_f4 = st.columns([2, 2, 2, 2])
@@ -105,7 +106,7 @@ if tipo_filtro in ["Por año", "Por mes", "Por semana"]:
 if tipo_filtro == "Por mes" and año_seleccionado:
     with col_f3:
         meses_opciones = list(meses_es.values())
-        mes_nombre = st.selectbox("Mes", meses_opciones, index=datetime.now().month - 1)
+        mes_nombre = st.selectbox("Mes", meses_opciones, index=datetime.now(MEXICO_TZ).month - 1)
         mes_seleccionado = list(meses_es.keys())[list(meses_es.values()).index(mes_nombre)]
 
 if tipo_filtro == "Por semana" and año_seleccionado:
@@ -124,9 +125,9 @@ if tipo_filtro == "Por semana" and año_seleccionado:
         
         # Definir índice por defecto: si el año seleccionado es el actual, usar la semana actual; si no, 0
         default_idx = 0
-        if int(año_seleccionado) == datetime.now().year:
+        if int(año_seleccionado) == datetime.now(MEXICO_TZ).year:
             try:
-                current_week = int(datetime.now().isocalendar()[1])
+                current_week = int(datetime.now(MEXICO_TZ).isocalendar()[1])
                 default_idx = min(current_week - 1, len(semanas_opciones) - 1)
             except Exception:
                 default_idx = 0
