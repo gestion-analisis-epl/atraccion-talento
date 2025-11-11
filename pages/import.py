@@ -152,8 +152,8 @@ if st.session_state.get("archivo_ok", False):
                         else 0,
                         "reponsable_vacante": safe_str(row.get("responsable_vacante")) or "SIN ESPECIFICAR",
                         "comentarios_vacante": safe_str(row.get("comentarios_vacante")).strip().upper().replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U"),
-                        "tipo_reclutamiento_vacante": safe_str(row.get("tipo_reclutamiento_vacante")).strip().upper() or "SIN ESPECIFICAR",
-                        "medio_reclutamiento_vacante": safe_str(row.get("medio_reclutamiento_vacante")).strip().upper or "SIN ESPECIFICAR",
+                        "tipo_reclutamiento_vacante": safe_str(row.get("tipo_reclutamiento_vacante")) or "SIN ESPECIFICAR",
+                        "medio_reclutamiento_vacante": safe_str(row.get("medio_reclutamiento_vacante")) or "SIN ESPECIFICAR",
                         "fecha_cobertura": row.get("fecha_cobertura"),
                         "id_sistema": id_sistema_actual
                     }
