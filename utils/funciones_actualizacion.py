@@ -16,6 +16,7 @@ def actualizar_vacante(conn):
         response = conn.table("vacantes").select("*").execute()
         df = pd.DataFrame(response.data)
         df = df.rename(columns={
+            "id": "ID Origen",
             "id_sistema": "ID",
             "fecha_solicitud": "Fecha de solicitud",
             "tipo_solicitud": "Tipo de solicitud",
@@ -43,7 +44,7 @@ def actualizar_vacante(conn):
         # Dataframe interactivo con selección
         event = st.dataframe(
             df,
-            column_config={"id_registro": None},
+            column_config={"ID Origen": None, "id_registro": None},
             column_order=["ID","Fecha de solicitud", "Puesto", "Plaza", "Empresa", "Fecha de autorización", "Fecha de cobertura"],
             hide_index=True,
             width="stretch",
@@ -155,7 +156,7 @@ def actualizar_vacante(conn):
                                 "medio_reclutamiento_vacante": medio_reclutamiento,
                                 "fecha_cobertura": fecha_cobertura.strftime('%Y-%m-%d') if fecha_cobertura else None,
                             }
-                            conn.table("vacantes").update(payload_vac).eq("id", registro["ID"]).execute()
+                            conn.table("vacantes").update(payload_vac).eq("id", registro["ID Origen"]).execute()
                             st.success("✅ Vacante actualizada correctamente")
                             st.rerun()
                         except Exception as e:
@@ -166,7 +167,7 @@ def actualizar_vacante(conn):
                         st.rerun()
             
             # Mostrar botón para editar solo si hay selección
-            st.success(f"✅ Seleccionaste: {df.iloc[fila_seleccionada]['Empresa']} - {df.iloc[fila_seleccionada]['Puesto']}")
+            st.success(f"✅ Seleccionaste: {df.iloc[fila_seleccionada]['Empresa']} - {df.iloc[fila_seleccionada]['Puesto']} - {df.iloc[fila_seleccionada]['Plaza']}")
             
             if st.button("✏️ Editar registro seleccionado", type="primary"):
                 registro_seleccionado = df.iloc[fila_seleccionada]
@@ -277,4 +278,3 @@ def actualizar_baja(conn):
     
     except Exception as e:
         st.error(f'Error: {e}')
-
