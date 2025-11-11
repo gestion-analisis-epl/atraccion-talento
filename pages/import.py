@@ -154,7 +154,7 @@ if st.session_state.get("archivo_ok", False):
                         "comentarios_vacante": safe_str(row.get("comentarios_vacante")),
                         "tipo_reclutamiento_vacante": safe_str(row.get("tipo_reclutamiento_vacante")) or "SIN ESPECIFICAR",
                         "medio_reclutamiento_vacante": safe_str(row.get("medio_reclutamiento_vacante")) or "SIN ESPECIFICAR",
-                        "fecha_cobertura": row.get("fecha_cobertura") or None,
+                        "fecha_cobertura": None,
                         "id_sistema": id_sistema_actual
                     }
 
