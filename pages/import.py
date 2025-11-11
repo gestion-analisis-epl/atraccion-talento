@@ -120,7 +120,6 @@ if st.session_state.get("archivo_ok", False):
                         "area": str(row.get("funcion_area_vacante", "")).strip(),
                     }
 
-                    # Helper para convertir NaN a None
                     def safe_str(valor):
                         if pd.isna(valor):
                             return None
@@ -137,9 +136,16 @@ if st.session_state.get("archivo_ok", False):
                         "plaza_vacante": maestra_data["plaza"],
                         "empresa_vacante": maestra_data["empresa"],
                         "funcion_area_vacante": maestra_data["area"],
-                        "vacantes_solicitadas": int(row.get("vacantes_solicitadas", 0))
-                        if pd.notna(row.get("vacantes_solicitadas"))
-                        else None,
+                        "vacantes_solicitadas": max(
+                            int(row.get("vacantes_solicitadas", 0)) - int(row.get("vacantes_contratados", 0))
+                            if (
+                                pd.notna(row.get("vacantes_solicitadas"))
+                                and pd.notna(row.get("vacantes_contratados"))
+                                and int(row.get("vacantes_contratados", 0)) > 0
+                            )
+                            else int(row.get("vacantes_solicitadas", 0)) if pd.notna(row.get("vacantes_solicitadas")) else 0,
+                            0
+                        ),
                         "vacantes_contratadas": int(row.get("vacantes_contratados", 0))
                         if pd.notna(row.get("vacantes_contratados"))
                         else 0,
@@ -157,7 +163,6 @@ if st.session_state.get("archivo_ok", False):
                         vacante_existente = buscar_vacante_por_id_sistema(conn, id_sistema_actual)
                     
                     if vacante_existente:
-                        # ACTUALIZAR registro existente
                         id_maestra = vacante_existente["id_registro"]
                         id_vacante = vacante_existente["id"]
                         
@@ -168,7 +173,6 @@ if st.session_state.get("archivo_ok", False):
                         registros_actualizados += 1
                         registros_exitosos += 1
                     else:
-                        # INSERTAR nuevo registro
                         id_maestra = insertar_maestra(conn, "Vacante", maestra_data)
                         if id_maestra is None:
                             raise Exception("No se generó ID de maestra")
@@ -187,12 +191,11 @@ if st.session_state.get("archivo_ok", False):
                 progress = (idx + 1) / total_rows
                 progress_bar.progress(progress)
                 status_text.text(f"Procesando {idx + 1}/{total_rows}")
-                logs_box.write("\n".join(logs[-5:]))  # muestra últimos 5 logs
+                logs_box.write("\n".join(logs[-5:]))
 
             progress_bar.empty()
             status_text.empty()
 
-            # Resumen detallado
             st.success(f"✅ Importación completada: {registros_exitosos} registros procesados.")
             
             col1, col2, col3 = st.columns(3)
