@@ -151,7 +151,7 @@ if st.session_state.get("archivo_ok", False):
                         if pd.notna(row.get("vacantes_contratados"))
                         else 0,
                         "reponsable_vacante": safe_str(row.get("responsable_vacante")) or "SIN ESPECIFICAR",
-                        "comentarios_vacante": safe_str(row.get("comentarios_vacante")).strip().upper().replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U"),
+                        "comentarios_vacante": safe_str(row.get("comentarios_vacante")),
                         "tipo_reclutamiento_vacante": safe_str(row.get("tipo_reclutamiento_vacante")) or "SIN ESPECIFICAR",
                         "medio_reclutamiento_vacante": safe_str(row.get("medio_reclutamiento_vacante")) or "SIN ESPECIFICAR",
                         "fecha_cobertura": row.get("fecha_cobertura"),
