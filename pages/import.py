@@ -6,7 +6,13 @@ import pytz
 import traceback
 
 from utils.auth import require_login
-from config.db_utils import insertar_maestra, insertar_vacante
+from config.db_utils import (
+    insertar_maestra, 
+    insertar_vacante, 
+    buscar_vacante_por_id_sistema, 
+    actualizar_vacante_sistema, 
+    actualizar_maestra
+)
 
 require_login()
 
@@ -35,7 +41,7 @@ column_map_vacantes = {
     "vacantes_solicitadas": "No.Vacantes Solicitadas",
     "vacantes_contratados": "No. Vacantes Contratados",
     "responsable_vacante": "Responsable Del Proceso",
-    "comentarios_vacante": " Comentarios Del Seguimiento Del Proceso",
+    "comentarios_vacante": "Comentarios Del Seguimiento Del Proceso",
     "tipo_reclutamiento_vacante": "Tipo de Reclutamiento",
     "medio_reclutamiento_vacante": "Medio de Reclutamiento/HeadHunter",
     "id_sistema": "ID"
@@ -89,6 +95,8 @@ if st.session_state.get("archivo_ok", False):
             df_vacantes["fecha_importacion"] = datetime.now(MEXICO_TZ)
 
             registros_exitosos = 0
+            registros_actualizados = 0
+            registros_nuevos = 0
             registros_fallidos = 0
             errores = []
 
@@ -101,7 +109,10 @@ if st.session_state.get("archivo_ok", False):
 
             for idx, row in df_vacantes.iterrows():
                 try:
-                    logs.append(f"🔄 Fila {idx + 1}: procesando {row.get('puesto_vacante', '')}")
+                    id_sistema_actual = int(row.get("id_sistema")) if pd.notna(row.get("id_sistema")) else None
+                    
+                    logs.append(f"🔄 Fila {idx + 1}: procesando {row.get('puesto_vacante', '')} (ID: {id_sistema_actual})")
+                    
                     maestra_data = {
                         "puesto": str(row.get("puesto_vacante", "")).strip(),
                         "empresa": str(row.get("empresa_vacante", "")).strip(),
@@ -109,10 +120,12 @@ if st.session_state.get("archivo_ok", False):
                         "area": str(row.get("funcion_area_vacante", "")).strip(),
                     }
 
-                    id_maestra = insertar_maestra(conn, "Vacante", maestra_data)
-                    if id_maestra is None:
-                        raise Exception("No se generó ID de maestra")
-
+                    # Helper para convertir NaN a None
+                    def safe_str(valor):
+                        if pd.isna(valor):
+                            return None
+                        return str(valor).strip() if str(valor).strip() else None
+                    
                     vacante_data = {
                         "fecha_solicitud": row.get("fecha_solicitud"),
                         "tipo_solicitud": str(row.get("tipo_solicitud", "")).strip().upper() or None,
@@ -129,22 +142,41 @@ if st.session_state.get("archivo_ok", False):
                         else None,
                         "vacantes_contratadas": int(row.get("vacantes_contratados", 0))
                         if pd.notna(row.get("vacantes_contratados"))
-                        else None,
-                        "reponsable_vacante": str(row.get("responsable_vacante", "")).strip() 
-                        if pd.notna(row.get("responsable_vacante")) else "SIN ESPECIFICAR",
-                        "comentarios_vacante": str(row.get("comentarios_vacante", "")).strip() or None,
-                        "tipo_reclutamiento_vacante": str(row.get("tipo_reclutamiento_vacante", "")).strip()
-                        if pd.notna(row.get("tipo_reclutamiento_vacante")) else "SIN ESPECIFICAR",
-                        "medio_reclutamiento_vacante": str(row.get("medio_reclutamiento_vacante", "")).strip()
-                        if pd.notna(row.get("medio_reclutamiento_vacante")) else "SIN ESPECIFICAR",
+                        else 0,
+                        "reponsable_vacante": safe_str(row.get("responsable_vacante")) or "SIN ESPECIFICAR",
+                        "comentarios_vacante": safe_str(row.get("comentarios_vacante")),
+                        "tipo_reclutamiento_vacante": safe_str(row.get("tipo_reclutamiento_vacante")) or "SIN ESPECIFICAR",
+                        "medio_reclutamiento_vacante": safe_str(row.get("medio_reclutamiento_vacante")) or "SIN ESPECIFICAR",
                         "fecha_cobertura": None,
-                        "id_sistema": int(row.get("id_sistema"))
+                        "id_sistema": id_sistema_actual
                     }
 
-                    resultado_vacante = insertar_vacante(conn, vacante_data, id_maestra)
-                    # st.success(f"✅ Información agregada correctamente")
-                    #logs.append(f"✅ Vacante insertada correctamente (ID: {resultado_vacante})")
-                    registros_exitosos += 1
+                    # Buscar si ya existe el registro
+                    vacante_existente = None
+                    if id_sistema_actual:
+                        vacante_existente = buscar_vacante_por_id_sistema(conn, id_sistema_actual)
+                    
+                    if vacante_existente:
+                        # ACTUALIZAR registro existente
+                        id_maestra = vacante_existente["id_registro"]
+                        id_vacante = vacante_existente["id"]
+                        
+                        actualizar_maestra(conn, id_maestra, maestra_data)
+                        actualizar_vacante_sistema(conn, vacante_data, id_maestra, id_vacante)
+                        
+                        logs.append(f"🔄 Registro actualizado (ID Sistema: {id_sistema_actual})")
+                        registros_actualizados += 1
+                        registros_exitosos += 1
+                    else:
+                        # INSERTAR nuevo registro
+                        id_maestra = insertar_maestra(conn, "Vacante", maestra_data)
+                        if id_maestra is None:
+                            raise Exception("No se generó ID de maestra")
+                        
+                        insertar_vacante(conn, vacante_data, id_maestra)
+                        logs.append(f"✅ Registro nuevo insertado (ID Sistema: {id_sistema_actual})")
+                        registros_nuevos += 1
+                        registros_exitosos += 1
 
                 except Exception as e:
                     registros_fallidos += 1
@@ -160,7 +192,17 @@ if st.session_state.get("archivo_ok", False):
             progress_bar.empty()
             status_text.empty()
 
-            st.success(f"✅ Importación completada: {registros_exitosos} registros insertados.")
+            # Resumen detallado
+            st.success(f"✅ Importación completada: {registros_exitosos} registros procesados.")
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("📝 Nuevos", registros_nuevos)
+            with col2:
+                st.metric("🔄 Actualizados", registros_actualizados)
+            with col3:
+                st.metric("⚠️ Fallidos", registros_fallidos)
+            
             if registros_fallidos > 0:
                 st.warning(f"⚠️ {registros_fallidos} registros fallaron.")
                 with st.expander("Ver errores"):
