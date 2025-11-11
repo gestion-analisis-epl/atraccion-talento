@@ -82,8 +82,8 @@ def insertar_vacante(conn, data: Dict[str, Any], id_registro: int):
         "vacantes_contratados": data["vacantes_contratadas"],
         "responsable_vacante": data["reponsable_vacante"],
         "comentarios_vacante": (str(data["comentarios_vacante"]).strip().upper() if data.get("comentarios_vacante") else None), 
-        "tipo_reclutamiento_vacante": data["tipo_reclutamiento_vacante"],
-        "medio_reclutamiento_vacante": data["medio_reclutamiento_vacante"],
+        "tipo_reclutamiento_vacante": data["tipo_reclutamiento_vacante"].strip().upper() if data.get("tipo_reclutamiento_vacante") else None,
+        "medio_reclutamiento_vacante": data["medio_reclutamiento_vacante"].strip().upper() if data.get("medio_reclutamiento_vacante") else None,
         "fecha_cobertura": data["fecha_cobertura"].isoformat() if data["fecha_cobertura"] else None,
         "id_sistema": data["id_sistema"] if data.get("id_sistema") else None
     }
