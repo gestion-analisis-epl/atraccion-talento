@@ -85,5 +85,6 @@ def insertar_vacante(conn, data: Dict[str, Any], id_registro: int):
         "tipo_reclutamiento_vacante": data["tipo_reclutamiento_vacante"],
         "medio_reclutamiento_vacante": data["medio_reclutamiento_vacante"],
         "fecha_cobertura": data["fecha_cobertura"].isoformat() if data["fecha_cobertura"] else None,
+        "id_sistema": data["id_sistema"] if data.get("id_sistema") else None
     }
     return conn.table("vacantes").insert(payload).execute()

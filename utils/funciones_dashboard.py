@@ -28,6 +28,13 @@ meses_es = {
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
 
+trimestres = {
+    1: {'nombre': 'T1 (Enero-Marzo)', 'meses': [1, 2, 3]},
+    2: {'nombre': 'T2 (Abril-Junio)', 'meses': [4, 5, 6]},
+    3: {'nombre': 'T3 (Julio-Septiembre)', 'meses': [7, 8, 9]},
+    4: {'nombre': 'T4 (Octubre-Diciembre)', 'meses': [10, 11, 12]}
+}
+
 # Zona horaria de México
 MEXICO_TZ = pytz.timezone('America/Mexico_City')
 
@@ -101,7 +108,42 @@ def obtener_rango_semana(año, semana):
         # Dejar que el caller maneje el error más arriba (muestra de info o logging).
         raise ValueError(f"Semana inválida o error al calcular rango ISO: {e}") from e
 
-def filtrar_datos(df, fecha_columna, tipo_filtro, año=None, mes=None, semana=None):
+def obtener_rango_trimestre(año, trimestre):
+    """Obtiene el rango de fechas (inicio a fin) para un trimestre dado.
+    
+    Parámetros:
+    - año: int o convertible a int (el año)
+    - trimestre: int (1, 2, 3 o 4)
+    
+    Retorna una tupla (inicio, fin) como objetos datetime.
+    """
+    try:
+        año = int(año)
+        trimestre = int(trimestre)
+        
+        if trimestre not in [1, 2, 3, 4]:
+            raise ValueError(f"Trimestre debe ser 1, 2, 3 o 4. Se recibió: {trimestre}")
+        
+        meses_trimestre = trimestres[trimestre]['meses']
+        mes_inicio = meses_trimestre[0]
+        mes_fin = meses_trimestre[-1]
+        
+        # Primer día del primer mes del trimestre
+        inicio = datetime(año, mes_inicio, 1)
+        
+        # Último día del último mes del trimestre
+        if mes_fin == 12:
+            fin = datetime(año, 12, 31)
+        else:
+            # Último día del mes = primer día del siguiente mes - 1 día
+            siguiente_mes = datetime(año, mes_fin + 1, 1)
+            fin = siguiente_mes - timedelta(days=1)
+        
+        return inicio, fin
+    except Exception as e:
+        raise ValueError(f"Error al calcular rango de trimestre: {e}") from e
+
+def filtrar_datos(df, fecha_columna, tipo_filtro, año=None, mes=None, semana=None, trimestre=None):
     """Filtra el DataFrame según el tipo de filtro seleccionado"""
     if df.empty:
         return df
@@ -112,6 +154,9 @@ def filtrar_datos(df, fecha_columna, tipo_filtro, año=None, mes=None, semana=No
         return df
     elif tipo_filtro == "Por año" and año:
         return df[df[fecha_columna].dt.year == año]
+    elif tipo_filtro == "Por trimestre" and año and trimestre:
+        inicio, fin = obtener_rango_trimestre(año, trimestre)
+        return df[(df[fecha_columna] >= inicio) & (df[fecha_columna] <= fin)]
     elif tipo_filtro == "Por mes" and año and mes:
         return df[(df[fecha_columna].dt.year == año) & (df[fecha_columna].dt.month == mes)]
     elif tipo_filtro == "Por semana" and año and semana:

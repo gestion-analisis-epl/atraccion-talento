@@ -38,6 +38,7 @@ column_map_vacantes = {
     "comentarios_vacante": " Comentarios Del Seguimiento Del Proceso",
     "tipo_reclutamiento_vacante": "Tipo de Reclutamiento",
     "medio_reclutamiento_vacante": "Medio de Reclutamiento/HeadHunter",
+    "id_sistema": "ID"
 }
 
 # --- Utilidad de fecha ---
@@ -137,6 +138,7 @@ if st.session_state.get("archivo_ok", False):
                         "medio_reclutamiento_vacante": str(row.get("medio_reclutamiento_vacante", "")).strip()
                         if pd.notna(row.get("medio_reclutamiento_vacante")) else "SIN ESPECIFICAR",
                         "fecha_cobertura": None,
+                        "id_sistema": int(row.get("id_sistema"))
                     }
 
                     resultado_vacante = insertar_vacante(conn, vacante_data, id_maestra)

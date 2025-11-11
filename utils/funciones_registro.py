@@ -62,7 +62,7 @@ def registrar_baja(conn):
     fecha_ingreso = st.date_input("Fecha de ingreso", value=datetime.now(MEXICO_TZ).date(), key="fecha_ingreso")
     opt_baja = st.selectbox("¿Cuenta con fecha de baja?", ("SI", "NO"))
     fecha_baja = st.date_input("Fecha de baja", value=datetime.now(MEXICO_TZ).date(), key="fecha_baja") if opt_baja == "SI" else None
-    tipo_baja = st.selectbox("Tipo de baja", ("INDUCIDA", "VOLUNTARIA"))
+    tipo_baja = st.selectbox("Tipo de baja", ("INDUCIDA", "VOLUNTARIA", "SIN ESPECIFICAR"))
     motivo_baja = st.text_input("Motivo de baja")
     guardar_baja = st.button("Guardar", key="guardar_baja", type="primary")
     
@@ -119,8 +119,8 @@ def registrar_vacante(conn):
     else:
         vacantes_contratadas = 0
         fecha_cobertura = None
-        tipo_reclutamiento_vacante = "SIN COBERTURA"
-        medio_reclutamiento_vacante = "SIN COBERTURA"
+        tipo_reclutamiento_vacante = "SIN ESPECIFICAR"
+        medio_reclutamiento_vacante = "SIN ESPECIFICAR"
     responsable_vacante = st.selectbox("Ejecutivo a cargo", RESPONSABLES_RECLUTAMIENTO, index=0)
     comentarios_vacante = st.text_area("Comentarios adicionales")
     guardar_vacante = st.button("Guardar", key="guardar_vacante", type="primary")

@@ -5,7 +5,7 @@ from st_supabase_connection import SupabaseConnection
 from datetime import datetime, timedelta
 import calendar
 import pytz
-from utils.funciones_dashboard import calcular_dias_cobertura, obtener_rango_semana, filtrar_datos, empresas_map, meses_es, MEXICO_TZ
+from utils.funciones_dashboard import calcular_dias_cobertura, obtener_rango_semana, obtener_rango_trimestre, filtrar_datos, empresas_map, meses_es, trimestres, MEXICO_TZ
 from utils.graficas_dashboard import (
     grafica_contrataciones_mes,
     grafica_contrataciones_mes_medio_reclutamiento,
@@ -91,17 +91,29 @@ col_f1, col_f2, col_f3, col_f4 = st.columns([2, 2, 2, 2])
 with col_f1:
     tipo_filtro = st.selectbox(
         "🗓️ Tipo de filtro",
-        ["Todo el tiempo", "Por año", "Por mes", "Por semana"],
+        ["Todo el tiempo", "Por año", "Por trimestre", "Por mes", "Por semana"],
         index=0
     )
 
 año_seleccionado = None
 mes_seleccionado = None
 semana_seleccionada = None
+trimestre_seleccionado = None
 
-if tipo_filtro in ["Por año", "Por mes", "Por semana"]:
+if tipo_filtro in ["Por año", "Por trimestre", "Por mes", "Por semana"]:
     with col_f2:
         año_seleccionado = st.selectbox("Año", años_disponibles)
+
+if tipo_filtro == "Por trimestre" and año_seleccionado:
+    with col_f3:
+        trimestres_opciones = [trimestres[t]['nombre'] for t in [1, 2, 3, 4]]
+        trimestre_nombre = st.selectbox("Trimestre", trimestres_opciones, index=0)
+        # Extraer el número del trimestre (T1, T2, T3, T4)
+        trimestre_seleccionado = int(trimestre_nombre[1])
+    with col_f4:
+        if trimestre_seleccionado:
+            inicio, fin = obtener_rango_trimestre(año_seleccionado, trimestre_seleccionado)
+            st.info(f"📅 {inicio.strftime('%d/%m/%Y')} - {fin.strftime('%d/%m/%Y')}")
 
 if tipo_filtro == "Por mes" and año_seleccionado:
     with col_f3:
@@ -140,10 +152,10 @@ if tipo_filtro == "Por semana" and año_seleccionado:
 st.markdown("---")
 
 # Aplicar filtros
-df_vacantes_filtrado = filtrar_datos(df_vacantes, 'fecha_solicitud', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada)
-df_vacantes_cerradas_filtrado = filtrar_datos(df_vacantes_cerradas, 'fecha_cobertura', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada)
-df_altas_filtrado = filtrar_datos(df_altas, 'fecha_alta', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada)
-df_bajas_filtrado = filtrar_datos(df_bajas, 'fecha_registro_baja', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada)
+df_vacantes_filtrado = filtrar_datos(df_vacantes, 'fecha_solicitud', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado)
+df_vacantes_cerradas_filtrado = filtrar_datos(df_vacantes_cerradas, 'fecha_cobertura', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado)
+df_altas_filtrado = filtrar_datos(df_altas, 'fecha_alta', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado)
+df_bajas_filtrado = filtrar_datos(df_bajas, 'fecha_registro_baja', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado)
 
 # ======================
 # MÉTRICAS PRINCIPALES
