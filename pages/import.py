@@ -44,7 +44,8 @@ column_map_vacantes = {
     "comentarios_vacante": "Comentarios Del Seguimiento Del Proceso",
     "tipo_reclutamiento_vacante": "Tipo de Reclutamiento",
     "medio_reclutamiento_vacante": "Medio de Reclutamiento/HeadHunter",
-    "id_sistema": "ID"
+    "id_sistema": "ID",
+    "fecha_cobertura": "Fecha Del Seguimiento Del Proceso"
 }
 
 # --- Utilidad de fecha ---
@@ -153,7 +154,7 @@ if st.session_state.get("archivo_ok", False):
                         "comentarios_vacante": safe_str(row.get("comentarios_vacante")),
                         "tipo_reclutamiento_vacante": safe_str(row.get("tipo_reclutamiento_vacante")) or "SIN ESPECIFICAR",
                         "medio_reclutamiento_vacante": safe_str(row.get("medio_reclutamiento_vacante")) or "SIN ESPECIFICAR",
-                        "fecha_cobertura": None,
+                        "fecha_cobertura": safe_str(row.get("fecha_cobertura")) or None,
                         "id_sistema": id_sistema_actual
                     }
 
