@@ -16,7 +16,7 @@ def actualizar_vacante(conn):
         response = conn.table("vacantes").select("*").execute()
         df = pd.DataFrame(response.data)
         df = df.rename(columns={
-            "id": "ID",
+            "id_sistema": "ID",
             "fecha_solicitud": "Fecha de solicitud",
             "tipo_solicitud": "Tipo de solicitud",
             "estatus_solicitud": "Estatus de solicitud",
@@ -277,3 +277,4 @@ def actualizar_baja(conn):
     
     except Exception as e:
         st.error(f'Error: {e}')
+
