@@ -40,47 +40,45 @@ MEXICO_TZ = pytz.timezone('America/Mexico_City')
 
 def calcular_dias_cobertura(row):
     """
-    Calcula los días de cobertura según las reglas:
-    - Si vacantes_contratados > 0: fecha_cobertura - fecha_solicitud (o fecha_autorizacion si existe)
-    - Si vacantes_solicitadas > 0: fecha_hoy - fecha_solicitud (o fecha_autorizacion si existe)
+    Calcula los días de cobertura actualizados en tiempo real:
+    - Para vacantes DISPONIBLES (vacantes_solicitadas > 0): fecha_actual - fecha_autorización (o fecha_solicitud si no hay autorización)
+    - Para vacantes CERRADAS (vacantes_contratados > 0): fecha_cobertura - fecha_autorización (o fecha_solicitud si no hay autorización)
+    
+    Esto asegura que las vacantes disponibles siempre muestren días actualizados.
     """
     try:
         # Obtener fecha actual en zona horaria de México
         fecha_hoy = datetime.now(MEXICO_TZ).replace(hour=0, minute=0, second=0, microsecond=0)
         
-        if pd.isna(row['fecha_autorizacion']):
-            fecha_solicitud = pd.to_datetime(row['fecha_solicitud'])
-            if fecha_solicitud.tzinfo is None:
-                fecha_solicitud = MEXICO_TZ.localize(fecha_solicitud)
-            
-            if row['vacantes_contratados'] > 0 and pd.notna(row.get('fecha_cobertura')):
-                fecha_cobertura = pd.to_datetime(row['fecha_cobertura'])
-                if fecha_cobertura.tzinfo is None:
-                    fecha_cobertura = MEXICO_TZ.localize(fecha_cobertura)
-                dias = (fecha_cobertura - fecha_solicitud).days
-            elif row['vacantes_solicitadas'] > 0:
-                dias = (fecha_hoy - fecha_solicitud).days
-            else:
-                dias = None
-                
-            return dias
+        # Determinar la fecha de inicio (priorizar fecha_autorización sobre fecha_solicitud)
+        if pd.notna(row['fecha_autorizacion']):
+            fecha_inicio = pd.to_datetime(row['fecha_autorizacion'])
+            if fecha_inicio.tzinfo is None:
+                fecha_inicio = MEXICO_TZ.localize(fecha_inicio)
+        elif pd.notna(row['fecha_solicitud']):
+            fecha_inicio = pd.to_datetime(row['fecha_solicitud'])
+            if fecha_inicio.tzinfo is None:
+                fecha_inicio = MEXICO_TZ.localize(fecha_inicio)
         else:
-            fecha_autorizacion = pd.to_datetime(row['fecha_autorizacion'])
-            if fecha_autorizacion.tzinfo is None:
-                fecha_autorizacion = MEXICO_TZ.localize(fecha_autorizacion)
-                
-            if row['vacantes_contratados'] > 0 and pd.notna(row.get('fecha_cobertura')):
-                fecha_cobertura = pd.to_datetime(row['fecha_cobertura'])
-                if fecha_cobertura.tzinfo is None:
-                    fecha_cobertura = MEXICO_TZ.localize(fecha_cobertura)
-                dias = (fecha_cobertura - fecha_autorizacion).days
-                return dias
-            elif row['vacantes_solicitadas'] > 0:
-                dias = (fecha_hoy - fecha_autorizacion).days
-                return dias
-            else:
-                return None
-    except:
+            return None
+        
+        # Determinar la fecha final según el estado de la vacante
+        # Si tiene contratados y fecha de cobertura, es una vacante cerrada
+        if row.get('vacantes_contratados', 0) > 0 and pd.notna(row.get('fecha_cobertura')):
+            fecha_final = pd.to_datetime(row['fecha_cobertura'])
+            if fecha_final.tzinfo is None:
+                fecha_final = MEXICO_TZ.localize(fecha_final)
+        # Si tiene vacantes solicitadas, es una vacante disponible (usar fecha actual)
+        elif row.get('vacantes_solicitadas', 0) > 0:
+            fecha_final = fecha_hoy
+        else:
+            return None
+        
+        # Calcular días
+        dias = (fecha_final - fecha_inicio).days
+        return dias
+        
+    except Exception as e:
         return None
 
 def obtener_rango_semana(año, semana):

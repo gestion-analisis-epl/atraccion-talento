@@ -6,7 +6,7 @@ Contiene funciones reutilizables para generar visualizaciones de datos.
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from utils.funciones_dashboard import empresas_map
+from utils.funciones_dashboard import empresas_map, calcular_dias_cobertura
     
 def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
     """
@@ -100,18 +100,26 @@ def grafica_vacantes_por_empresa(df_vacantes):
             df = df[df['vacantes_solicitadas'] > 0]
 
             if not df.empty:
+                # Calcular días de cobertura actualizados para cada vacante
+                df['dias_cobertura_calculados'] = df.apply(calcular_dias_cobertura, axis=1)
+                
                 # Mostrar detalle de vacantes con nombre de la vacante y empresa
-                df_detalle = df[['empresa_vacante', 'puesto_vacante', 'plaza_vacante', 'vacantes_solicitadas']].copy()
+                df_detalle = df[['empresa_vacante', 'puesto_vacante', 'plaza_vacante', 'vacantes_solicitadas', 'dias_cobertura_calculados']].copy()
                 df_detalle = df_detalle.rename(columns={
                     "empresa_vacante": "Empresa", 
                     "puesto_vacante": "Puesto", 
                     "plaza_vacante": "Plaza",
-                    "vacantes_solicitadas": "Vacantes"
+                    "vacantes_solicitadas": "Vacantes",
+                    "dias_cobertura_calculados": "Días de cobertura"
                 })
                 # df_detalle['Empresa'] = df_detalle['Empresa'].replace(empresas_map)
                 df_grafico = df_detalle.copy()
                 df_grafico['Empresa'] = df_grafico['Empresa'].replace(empresas_map)
-                df_detalle = df_detalle.groupby(['Empresa', 'Puesto', 'Plaza'], as_index=False).agg({'Vacantes': 'sum'})
+                df_detalle = df_detalle.groupby(['Empresa', 'Puesto', 'Plaza'], as_index=False).agg({
+                    'Vacantes': 'sum',
+                    'Días de cobertura': 'mean'  # Promedio de días de cobertura por agrupación
+                })
+                df_detalle['Días de cobertura'] = df_detalle['Días de cobertura'].round(0).astype(int)
 
                 st.write('### Detalle de Vacantes por Empresa')
                 df_detalle = df_detalle.sort_values(by='Vacantes', ascending=False)
@@ -135,7 +143,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                         color='Empresa',
                         color_discrete_sequence=px.colors.sequential.ice_r
                     )
-                    fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
+                    fig.update_layout(showlegend=True, font=dict(weight='bold', size=13))
                     with col2:
                         st.plotly_chart(fig)
             else:

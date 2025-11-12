@@ -122,13 +122,14 @@ elif consulta == "Vacantes":
         "tipo_reclutamiento": "Tipo de reclutamiento",
         "medio_reclutamiento_vacante": "Medio de reclutamiento",
         "fecha_cobertura": "Fecha de cobertura",
+        "dias_cobertura": "Días de cobertura"
     }
     df_vacantes = df_vacantes.rename(columns=columns_name)
     st.dataframe(df_vacantes, hide_index=True, column_order=["ID", "Fecha de solicitud", "Tipo de solicitud", "Estatus de solicitud",
                                                              "Fase del proceso", "Fecha del avance", "Fecha de autorización",
                                                              "Puesto", "Plaza", "Empresa", "Función de área", "Vacantes solicitadas",
                                                              "Contratados", "Responsable", "Comentarios", "Tipo de reclutamiento",
-                                                             "Medio de reclutamiento", "Fecha de cobertura"])
+                                                             "Medio de reclutamiento", "Fecha de cobertura", "Días de cobertura"])
 
 # ==============================
 # CONSULTAR TODOS LOS REGISTROS
