@@ -346,8 +346,8 @@ Este proyecto es propiedad de **Especialistas Profesionales de León (Grupo EPL)
 Desarrollado con ❤️ por el equipo de Gestión y Análisis de EPL
 
 **Grupo EPL** - Especialistas Profesionales de León
-- [LinkedIn](https://www.linkedin.com/company/grupo-epl)
-- [Sitio Web](https://www.grupoepl.com)
+- [LinkedIn](linkedin.com/in/alexaemtz)
+- [Sitio Web](https://www.grupoepl.com.mx/)
 
 ---
 
