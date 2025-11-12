@@ -189,7 +189,7 @@ if not df_vacantes.empty:
 else:
     n_vacantes = 0
     st.error(f'Error al calcular vacantes. No se encontraron datos.')
-d = ((21-21)/21)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
+d = ((30-21)/21)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
 col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{d:.2f}%")
 
 st.divider()

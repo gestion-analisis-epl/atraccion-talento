@@ -115,14 +115,14 @@ def grafica_vacantes_por_empresa(df_vacantes):
                 # df_detalle['Empresa'] = df_detalle['Empresa'].replace(empresas_map)
                 df_grafico = df_detalle.copy()
                 df_grafico['Empresa'] = df_grafico['Empresa'].replace(empresas_map)
-                df_detalle = df_detalle.groupby(['Empresa', 'Puesto', 'Plaza'], as_index=False).agg({
-                    'Vacantes': 'sum',
-                    'Días de cobertura': 'mean'  # Promedio de días de cobertura por agrupación
-                })
+                #df_detalle = df_detalle.groupby(['Empresa', 'Puesto', 'Plaza'], as_index=False).agg({
+                #    'Vacantes': 'sum',
+                #    'Días de cobertura': 'mean'  # Promedio de días de cobertura por agrupación
+                #})
                 df_detalle['Días de cobertura'] = df_detalle['Días de cobertura'].round(0).astype(int)
 
                 st.write('### Detalle de Vacantes por Empresa')
-                df_detalle = df_detalle.sort_values(by='Vacantes', ascending=False)
+                df_detalle = df_detalle.sort_values(by='Días de cobertura', ascending=False)
                 st.dataframe(df_detalle, hide_index=True)
 
                 # Resumen por empresa
