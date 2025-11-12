@@ -123,6 +123,8 @@ def grafica_vacantes_por_empresa(df_vacantes):
 
                 st.write('### Detalle de Vacantes por Empresa')
                 df_detalle = df_detalle.sort_values(by='Días de cobertura', ascending=False)
+                confidencial = df['confidencial'] != 'SI'
+                df_detalle = df_detalle[confidencial]
                 st.dataframe(df_detalle, hide_index=True)
 
                 # Resumen por empresa

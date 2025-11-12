@@ -35,6 +35,7 @@ if consulta == "Altas":
         'responsable_alta': 'Responsable'
     }
     df_altas = df_altas.rename(columns=columns_names)
+    df_altas = df_altas.sort_values(by='ID', ascending=True)
     st.dataframe(df_altas, hide_index=True, column_order=["ID", "Fecha de alta", "Empresa", "Puesto", "Plaza",
                                                           "Función de área", "Contratados", "Medio de reclutamiento", "Responsable"])
 
@@ -55,6 +56,7 @@ elif consulta == "Bajas":
         "tipo_baja": "Tipo de baja",
         "motivo_baja": "Motivo de la baja"
     })
+    df_bajas = df_bajas.sort_values(by='ID', ascending=True)
     st.dataframe(df_bajas, hide_index=True, column_order=["ID", "Empresa", "Puesto", "Plaza", "Fecha de ingreso","Fecha de baja", "Tipo de baja", "Motivo de la baja"])
 
 # ======================
@@ -103,7 +105,8 @@ elif consulta == "Vacantes":
     df_vacantes['dias_cobertura'] = df_vacantes.apply(calcular_dias_cobertura, axis=1)
     
     columns_name = {
-        "id": "ID",
+        "id": "ID de Origen",
+        "id_sistema": "ID del Sistema",
         "id_registro": "ID General",
         "fecha_solicitud": "Fecha de solicitud",
         "tipo_solicitud": "Tipo de solicitud",
@@ -125,7 +128,10 @@ elif consulta == "Vacantes":
         "dias_cobertura": "Días de cobertura"
     }
     df_vacantes = df_vacantes.rename(columns=columns_name)
-    st.dataframe(df_vacantes, hide_index=True, column_order=["ID", "Fecha de solicitud", "Tipo de solicitud", "Estatus de solicitud",
+    confidencial = df_vacantes['confidencial'] != 'SI'
+    df_vacantes = df_vacantes[confidencial]
+    df_vacantes = df_vacantes.sort_values(by='ID del Sistema', ascending=False)
+    st.dataframe(df_vacantes, hide_index=True, column_order=["ID del Sistema", "Fecha de solicitud", "Tipo de solicitud", "Estatus de solicitud",
                                                              "Fase del proceso", "Fecha del avance", "Fecha de autorización",
                                                              "Puesto", "Plaza", "Empresa", "Función de área", "Vacantes solicitadas",
                                                              "Contratados", "Responsable", "Comentarios", "Tipo de reclutamiento",

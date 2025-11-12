@@ -92,6 +92,12 @@ if st.session_state.get("archivo_ok", False):
             for col in ["fecha_solicitud", "fecha_avance", "fecha_autorizacion", "fecha_cobertura"]:
                 if col in df_vacantes.columns:
                     df_vacantes[col] = df_vacantes[col].apply(convertir_fecha)
+            
+            # Validar fecha de autorización: debe ser del año 2000 en adelante
+            if "fecha_autorizacion" in df_vacantes.columns:
+                df_vacantes["fecha_autorizacion"] = df_vacantes["fecha_autorizacion"].apply(
+                    lambda x: x if pd.notna(x) and x.year >= 2000 else None
+                )
 
             df_vacantes["fecha_importacion"] = datetime.now(MEXICO_TZ)
 
@@ -126,11 +132,20 @@ if st.session_state.get("archivo_ok", False):
                             return None
                         return str(valor).strip() if str(valor).strip() else None
                     
+                    # Determinar fecha de cobertura según la fase del proceso
+                    fase_proceso = str(row.get("fase_proceso", "")).strip().upper()
+                    fecha_cobertura_final = None
+                    
+                    if fase_proceso == "CONTRATADO":
+                        # Si la fase es "CONTRATADO", usar la Fecha Del Seguimiento Del Proceso
+                        fecha_cobertura_final = row.get("fecha_cobertura")
+                    # De lo contrario, fecha_cobertura queda como None
+                    
                     vacante_data = {
                         "fecha_solicitud": row.get("fecha_solicitud"),
                         "tipo_solicitud": str(row.get("tipo_solicitud", "")).strip().upper() or None,
                         "estatus_solicitud": str(row.get("estatus_solicitud", "")).strip().upper() or None,
-                        "fase_proceso": str(row.get("fase_proceso", "")).strip().upper() or None,
+                        "fase_proceso": fase_proceso or None,
                         "fecha_avance": row.get("fecha_avance"),
                         "fecha_autorizacion": row.get("fecha_autorizacion"),
                         "puesto_vacante": maestra_data["puesto"],
@@ -154,7 +169,7 @@ if st.session_state.get("archivo_ok", False):
                         "comentarios_vacante": safe_str(row.get("comentarios_vacante")),
                         "tipo_reclutamiento_vacante": safe_str(row.get("tipo_reclutamiento_vacante")) or "SIN ESPECIFICAR",
                         "medio_reclutamiento_vacante": safe_str(row.get("medio_reclutamiento_vacante")) or "SIN ESPECIFICAR",
-                        "fecha_cobertura": row.get("fecha_cobertura"),
+                        "fecha_cobertura": fecha_cobertura_final,
                         "id_sistema": id_sistema_actual
                     }
 
