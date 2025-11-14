@@ -205,7 +205,7 @@ col4, col5, col6 = st.columns([2, 2, 2])
 # Vacantes Abiertas
 try:
     if not df_vacantes.empty:
-        df_cobertura = df_vacantes[df_vacantes['vacantes_solicitadas'] > 0].copy()
+        df_cobertura =df_vacantes[(df_vacantes['vacantes_solicitadas'] > 0) & (df_vacantes['fecha_autorizacion'].notna())].copy()
         if not df_cobertura.empty:
             df_cobertura['dias_calculados'] = df_cobertura.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_cobertura['dias_calculados'].dropna().mean()
