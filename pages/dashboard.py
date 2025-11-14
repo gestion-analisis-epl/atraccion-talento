@@ -8,7 +8,6 @@ import pytz
 from utils.funciones_dashboard import calcular_dias_cobertura, obtener_rango_semana, obtener_rango_trimestre, filtrar_datos, empresas_map, meses_es, trimestres, MEXICO_TZ
 from utils.graficas_dashboard import (
     grafica_contrataciones_mes,
-    grafica_contrataciones_mes_medio_reclutamiento,
     grafica_contrataciones_por_ejecutivo,
     grafica_contrataciones_por_medio_reclutamiento,
     grafica_vacantes_por_empresa,
