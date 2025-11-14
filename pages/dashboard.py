@@ -185,7 +185,7 @@ except Exception as e:
 
 # No. VACANTES
 if not df_vacantes.empty:
-    n_vacantes = df_vacantes['vacantes_solicitadas'].astype(int).sum()
+    n_vacantes = df_vacantes[df_vacantes['fecha_autorizacion'].notna()]['vacantes_solicitadas'].astype(int).sum()
 else:
     n_vacantes = 0
     st.error(f'Error al calcular vacantes. No se encontraron datos.')
