@@ -21,6 +21,7 @@ def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
             df = df[df['contratados_alta'].astype(int) > 0]
             if not df.empty:
                 df['primer_nombre'] = df['responsable_alta'].str.split().str[0]
+                df['primer_nombre'] = df['primer_nombre'].replace({'MARTA': 'HELEN', "SIN ESPECIFICAR": "SIN ESPECIFICAR"})
                 resumen = df.groupby('primer_nombre')['contratados_alta'].sum().reset_index()
                 resumen = resumen.sort_values('contratados_alta', ascending=False)
                 fig = px.bar(
@@ -30,7 +31,7 @@ def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
                     orientation='h', 
                     text='contratados_alta', 
                     color='primer_nombre',
-                    color_discrete_sequence=px.colors.sequential.PuBu,
+                    color_discrete_sequence=px.colors.sequential.Hot_r,
                     title='Contrataciones realizadas por Ejecutivo',
                     labels={'contratados_alta': 'Contrataciones', 'primer_nombre': 'Ejecutivo'}
                 )
@@ -71,7 +72,7 @@ def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
                     orientation='h', 
                     text='etiqueta', 
                     color='medio_reclutamiento_alta',
-                    color_discrete_sequence=px.colors.sequential.Magenta,
+                    color_discrete_sequence=px.colors.sequential.thermal_r,
                     title='Contrataciones por Medio de Reclutamiento',
                     labels={'contratados_alta': 'Contrataciones', 'medio_reclutamiento_alta': 'Medio de Reclutamiento'}
                 )
@@ -143,7 +144,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                         values='Vacantes', 
                         names='Empresa', 
                         color='Empresa',
-                        color_discrete_sequence=px.colors.sequential.ice_r
+                        color_discrete_sequence=px.colors.sequential.Sunset
                     )
                     fig.update_layout(showlegend=True, font=dict(weight='bold', size=13))
                     with col2:
@@ -184,7 +185,7 @@ def grafica_vacantes_por_area(df_vacantes):
                     text='Vacantes',
                     orientation='h',
                     color='Función de área',
-                    color_discrete_sequence=px.colors.sequential.Teal,
+                    color_discrete_sequence=px.colors.sequential.Emrld,
                     title='Distribución de Vacantes por Función de Área'
                 )
                 fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
@@ -306,3 +307,43 @@ def grafica_contrataciones_mes_medio_reclutamiento(df_altas_filtrado):
 
     except Exception as e:
         st.error(f'Error al generar la gráfica de contrataciones por mes y medio: {e}')
+
+
+def grafica_embudo_fase_proceso(df_vacantes_filtrado):
+    """
+    Genera gráfica de embudo con vacantes por fase de proceso.
+    
+    Args:
+        df_vacantes_filtrado: DataFrame filtrado de vacantes
+    """
+    try:
+        if not df_vacantes_filtrado.empty:
+            df = df_vacantes_filtrado.copy()
+            df = df[df['fase_proceso'].notna()]
+            
+            if not df.empty:
+                # Filtrar registros que NO sean "CONTRATADO"
+                df = df.loc[(df["fase_proceso"] != "CONTRATADO") & (df["estatus_solicitud"] != "PENDIENTE")]
+                
+                # Contar por fase de proceso
+                conteo = df['fase_proceso'].value_counts().reset_index()
+                conteo.columns = ['fase_proceso', 'cantidad']
+                conteo = conteo.sort_values('cantidad', ascending=True)
+                
+                fig = px.funnel(
+                    conteo,
+                    x='cantidad',
+                    y='fase_proceso',
+                    title='Embudo de Vacantes por Fase de Proceso',
+                    labels={'cantidad': 'Cantidad', 'fase_proceso': 'Fase del Proceso'},
+                    color='fase_proceso',
+                    color_discrete_sequence=px.colors.sequential.Plasma
+                )
+                fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
+                st.plotly_chart(fig)
+            else:
+                st.info('No se encontraron fases de proceso registradas.')
+        else:
+            st.info('No se encontraron registros de vacantes.')
+    except Exception as e:
+        st.error(f'Error al generar la gráfica de embudo por fase de proceso: {e}')
