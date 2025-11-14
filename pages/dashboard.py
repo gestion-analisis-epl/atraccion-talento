@@ -12,7 +12,8 @@ from utils.graficas_dashboard import (
     grafica_contrataciones_por_ejecutivo,
     grafica_contrataciones_por_medio_reclutamiento,
     grafica_vacantes_por_empresa,
-    grafica_vacantes_por_area
+    grafica_vacantes_por_area,
+    grafica_embudo_fase_proceso
 )
 
 from utils.auth import require_login
@@ -417,3 +418,7 @@ grafica_vacantes_por_empresa(df_vacantes)
 st.divider()
 st.write("### Vacantes por Área")
 grafica_vacantes_por_area(df_vacantes)
+
+st.divider()
+st.write("### Embudo de Vacantes por Fase de Proceso")
+grafica_embudo_fase_proceso(df_vacantes)
