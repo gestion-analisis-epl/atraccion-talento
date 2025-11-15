@@ -58,7 +58,7 @@ def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
             df = df[df['contratados_alta'].astype(int) > 0]
             if not df.empty:
                 resumen = df.groupby('medio_reclutamiento_alta')['contratados_alta'].sum().reset_index()
-                datos_a_mostrar = st.number_input('¿Cuántos medios desea observar?', min_value=1, max_value=resumen.shape[0])
+                datos_a_mostrar = st.number_input('¿Cuántos medios desea observar?', min_value=1, max_value=resumen.shape[0], value=resumen.shape[0])
                 resumen = resumen.sort_values('contratados_alta', ascending=False).head(datos_a_mostrar)
                 # Calcular total y porcentajes
                 total_contrataciones = resumen['contratados_alta'].sum()
