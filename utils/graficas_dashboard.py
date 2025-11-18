@@ -98,6 +98,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
         if not df_vacantes.empty:
             df = df_vacantes.copy()
             df['vacantes_solicitadas'] = df['vacantes_solicitadas'].astype(int)
+            
             df = df[df['vacantes_solicitadas'] > 0]
 
             if not df.empty:
@@ -106,6 +107,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                 
                 # Mostrar detalle de vacantes con nombre de la vacante y empresa
                 df_detalle = df[['empresa_vacante', 'puesto_vacante', 'plaza_vacante', 'vacantes_solicitadas', 'dias_cobertura_calculados']].copy()
+                df_detalle = df.loc[(df['fecha_autorizacion'].notna())]
                 df_detalle = df_detalle.rename(columns={
                     "empresa_vacante": "Empresa", 
                     "puesto_vacante": "Puesto", 
@@ -174,7 +176,7 @@ def grafica_vacantes_por_area(df_vacantes):
                     "funcion_area_vacante": "Función de área", 
                     "vacantes_solicitadas": "Vacantes"
                 }
-                resumen = resumen.rename(columns=columns_name)
+                resumen = resumen.rename(columns=columns_name) 
                 resumen = resumen.sort_values(by='Vacantes', ascending=False)
                 st.write('### Vacantes por Función de Área')
                 st.dataframe(resumen, hide_index=True)
