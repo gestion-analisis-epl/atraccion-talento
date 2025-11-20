@@ -189,7 +189,7 @@ if not df_vacantes.empty:
 else:
     n_vacantes = 0
     st.error(f'Error al calcular vacantes. No se encontraron datos.')
-d = ((n_vacantes-21)/21)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
+d = ((n_vacantes-28)/28)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
 col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{d:.2f}%")
 
 # Requisiciones vs Contrataciones
@@ -374,7 +374,8 @@ st.divider()
 st.write("### 📋 Detalle de las contrataciones")
 try:
     if not df_altas_filtrado.empty:
-        st.dataframe(df_altas_filtrado,
+        confidencial = df_altas_filtrado['confidencial'] != 'SI'
+        st.dataframe(df_altas_filtrado[confidencial],
                      column_config={
                          "id": None,
                          "id_registro": None,
