@@ -99,16 +99,16 @@ def grafica_vacantes_por_empresa(df_vacantes):
             df = df_vacantes.copy()
             df['vacantes_solicitadas'] = df['vacantes_solicitadas'].astype(int)
             
-            df = df[df['vacantes_solicitadas'] > 0]
+            df = df[(df['vacantes_solicitadas'] > 0) & (df['fecha_autorizacion'].notna())]
 
             if not df.empty:
                 # Calcular días de cobertura actualizados para cada vacante
                 df['dias_cobertura_calculados'] = df.apply(calcular_dias_cobertura, axis=1)
                 
                 # Mostrar detalle de vacantes con nombre de la vacante y empresa
-                df_detalle = df[['empresa_vacante', 'puesto_vacante', 'plaza_vacante', 'vacantes_solicitadas', 'dias_cobertura_calculados']].copy()
-                df_detalle = df.loc[(df['fecha_autorizacion'].notna())]
+                df_detalle = df[['id_sistema', 'empresa_vacante', 'puesto_vacante', 'plaza_vacante', 'vacantes_solicitadas', 'dias_cobertura_calculados']].copy()
                 df_detalle = df_detalle.rename(columns={
+                    "id_sistema": "ID",
                     "empresa_vacante": "Empresa", 
                     "puesto_vacante": "Puesto", 
                     "plaza_vacante": "Plaza",
@@ -169,7 +169,7 @@ def grafica_vacantes_por_area(df_vacantes):
     try:
         if not df_vacantes.empty:
             df = df_vacantes.copy()
-            df = df[df['vacantes_solicitadas'].astype(int) > 0]
+            df = df[(df['vacantes_solicitadas'].astype(int) > 0) & (df['fecha_autorizacion'].notna())]
             if not df.empty:
                 resumen = df.groupby('funcion_area_vacante')['vacantes_solicitadas'].sum().reset_index()
                 columns_name = {

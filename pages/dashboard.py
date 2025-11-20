@@ -240,7 +240,8 @@ try:
         # Filtrar solo las vacantes ADMINISTRATIVAS
         df_administrativas = df_vacantes[
             (df_vacantes['funcion_area_vacante'] == 'ADMINISTRATIVA') &
-            (df_vacantes['vacantes_solicitadas'] > 0)
+            (df_vacantes['vacantes_solicitadas'] > 0) &
+            (df_vacantes['fecha_autorizacion'].notna())
         ].copy()
 
         if not df_administrativas.empty:
@@ -267,7 +268,8 @@ try:
         # Filtrar solo las vacantes OPERATIVAS
         df_operativas = df_vacantes[
             (df_vacantes['funcion_area_vacante'] == 'OPERATIVA') &
-            (df_vacantes['vacantes_solicitadas'] > 0)
+            (df_vacantes['vacantes_solicitadas'] > 0) &
+            (df_vacantes['fecha_autorizacion'].notna())
         ].copy()
 
         if not df_operativas.empty:
