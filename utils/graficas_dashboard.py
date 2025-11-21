@@ -31,7 +31,7 @@ def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
                     orientation='h', 
                     text='contratados_alta', 
                     color='primer_nombre',
-                    color_discrete_sequence=px.colors.sequential.Hot_r,
+                    color_discrete_sequence=px.colors.sequential.Magma_r,
                     title='Contrataciones realizadas por Ejecutivo',
                     labels={'contratados_alta': 'Contrataciones', 'primer_nombre': 'Ejecutivo'}
                 )
