@@ -221,6 +221,7 @@ try:
         if not df_cobertura.empty:
             df_cobertura['dias_calculados'] = df_cobertura.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_cobertura['dias_calculados'].dropna().mean()
+            promedio_cobertura = promedio_cobertura + 0.1
             col4.metric(
                 label='Promedio en vacantes disponibles', 
                 value=f"{promedio_cobertura:.0f}" if pd.notna(promedio_cobertura) else "0",
@@ -247,7 +248,7 @@ try:
         if not df_administrativas.empty:
             df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
-
+            promedio_cobertura = promedio_cobertura + 0.1
             col5.metric(
                 label='Promedio en Administrativas',
                 value=f"{promedio_cobertura:.0f}" if pd.notna(promedio_cobertura) else "0",
@@ -275,7 +276,7 @@ try:
         if not df_operativas.empty:
             df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
-
+            promedio_cobertura = promedio_cobertura + 0.1
             col6.metric(
                 label='Promedio en Operativas',
                 value=f"{promedio_cobertura:.0f}" if pd.notna(promedio_cobertura) else "0",
@@ -303,6 +304,7 @@ try:
         if not df_contratacion.empty:
             df_contratacion['dias_calculados'] = df_contratacion.apply(calcular_dias_cobertura, axis=1)
             promedio_contratacion = df_contratacion['dias_calculados'].dropna().mean()
+            promedio_contratacion = promedio_contratacion + 0.1
             col7.metric(
                label='Promedio en Vacantes finalizadas',
                value=f"{promedio_contratacion:.0f}" if pd.notna(promedio_contratacion) else "0",
@@ -328,7 +330,7 @@ try:
         if not df_administrativas.empty:
             df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
-
+            promedio_cobertura = promedio_cobertura + 0.1
             col8.metric(
                 label='Promedio en Administrativas',
                 value=f"{promedio_cobertura:.0f}" if pd.notna(promedio_cobertura) else "0",
@@ -355,7 +357,7 @@ try:
         if not df_operativas.empty:
             df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
-
+            promedio_cobertura = promedio_cobertura + 0.1
             col9.metric(
                 label='Promedio en Operativas',
                 value=f"{promedio_cobertura:.0f}" if pd.notna(promedio_cobertura) else "0",
