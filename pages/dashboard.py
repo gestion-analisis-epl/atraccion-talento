@@ -12,7 +12,8 @@ from utils.graficas_dashboard import (
     grafica_contrataciones_por_medio_reclutamiento,
     grafica_vacantes_por_empresa,
     grafica_vacantes_por_area,
-    grafica_embudo_fase_proceso
+    grafica_embudo_fase_proceso,
+    grafica_contrataciones_por_empresa
 )
 
 from utils.auth import require_login
@@ -189,7 +190,7 @@ if not df_vacantes.empty:
 else:
     n_vacantes = 0
     st.error(f'Error al calcular vacantes. No se encontraron datos.')
-d = ((n_vacantes-28)/28)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
+d = ((n_vacantes-16)/16)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
 col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{d:.2f}%")
 
 # Requisiciones vs Contrataciones
@@ -221,10 +222,9 @@ try:
         if not df_cobertura.empty:
             df_cobertura['dias_calculados'] = df_cobertura.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_cobertura['dias_calculados'].dropna().mean()
-            promedio_cobertura = promedio_cobertura + 0.1
             col4.metric(
                 label='Promedio en vacantes disponibles', 
-                value=f"{promedio_cobertura:.0f}" if pd.notna(promedio_cobertura) else "0",
+                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
                 border=True
             )
         else:
@@ -248,10 +248,10 @@ try:
         if not df_administrativas.empty:
             df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
-            promedio_cobertura = promedio_cobertura + 0.1
+
             col5.metric(
                 label='Promedio en Administrativas',
-                value=f"{promedio_cobertura:.0f}" if pd.notna(promedio_cobertura) else "0",
+                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
                 border=True
             )
         else:
@@ -276,10 +276,10 @@ try:
         if not df_operativas.empty:
             df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
-            promedio_cobertura = promedio_cobertura + 0.1
+
             col6.metric(
                 label='Promedio en Operativas',
-                value=f"{promedio_cobertura:.0f}" if pd.notna(promedio_cobertura) else "0",
+                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
                 border=True
             )
         else:
@@ -307,7 +307,7 @@ try:
             promedio_contratacion = promedio_contratacion + 0.1
             col7.metric(
                label='Promedio en Vacantes finalizadas',
-               value=f"{promedio_contratacion:.0f}" if pd.notna(promedio_contratacion) else "0",
+               value=f"{round(promedio_contratacion)}" if pd.notna(promedio_contratacion) else "0",
                border=True
             )
         else:
@@ -330,10 +330,10 @@ try:
         if not df_administrativas.empty:
             df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
-            promedio_cobertura = promedio_cobertura + 0.1
+
             col8.metric(
                 label='Promedio en Administrativas',
-                value=f"{promedio_cobertura:.0f}" if pd.notna(promedio_cobertura) else "0",
+                value=f"{round(promedio_contratacion)}" if pd.notna(promedio_cobertura) else "0",
                 border=True
             )
         else:
@@ -357,10 +357,10 @@ try:
         if not df_operativas.empty:
             df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
-            promedio_cobertura = promedio_cobertura + 0.1
+
             col9.metric(
                 label='Promedio en Operativas',
-                value=f"{promedio_cobertura:.0f}" if pd.notna(promedio_cobertura) else "0",
+                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
                 border=True
             )
         else:
@@ -376,19 +376,24 @@ st.divider()
 st.write("### 📋 Detalle de las contrataciones")
 try:
     if not df_altas_filtrado.empty:
-        confidencial = df_altas_filtrado['confidencial'] != 'SI'
-        st.dataframe(df_altas_filtrado[confidencial],
+        df = df_altas_filtrado.copy()
+        df = df.rename(columns={
+            'empresa_alta': 'Empresa',
+            "puesto_alta": "Puesto",
+            "plaza_alta": "Plaza",
+            "area_alta": "Área",
+            "medio_reclutamiento_alta": "Medio de reclutamiento",
+            "responsable_alta": "Ejecutivo de reclutamiento",
+            'contratados_alta': 'Contratados',
+        })
+        confidencial = df['confidencial'] != 'SI'
+        st.dataframe(df[confidencial],
                      column_config={
                          "id": None,
                          "id_registro": None,
                          "fecha_alta": None,
-                         "empresa_alta": "Empresa",
-                         "puesto_alta": "Puesto",
-                         "plaza_alta": "Plaza",
-                         "area_alta": "Área",
-                         "contratados_alta": None,
-                         "medio_reclutamiento_alta": "Medio de reclutamiento",
-                         "responsable_alta": "Ejecutivo de reclutamiento",
+                         "contratados_alta": None, 
+                         'confidencial': None,
                      }, hide_index=True, width="stretch")
     else:
         st.write("No hay datos disponibles para mostrar.")
@@ -413,6 +418,10 @@ grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado)
 st.write("#### Contrataciones por Mes")
 grafica_contrataciones_mes(df_altas_filtrado)
 # grafica_contrataciones_mes_medio_reclutamiento(df_altas_filtrado)
+
+st.divider()
+st.write('### Contrataciones por Empresa')
+grafica_contrataciones_por_empresa(df_altas_filtrado)
 
 # Gráficas de vacantes (sin filtro - todo el tiempo)
 st.divider()
