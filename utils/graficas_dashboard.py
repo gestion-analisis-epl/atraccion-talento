@@ -7,6 +7,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from utils.funciones_dashboard import empresas_map, calcular_dias_cobertura
+from config.opciones import EMPRESAS_NOMBRE_CORTO
     
 def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
     """
@@ -43,7 +44,45 @@ def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
             st.info('No se encontró información de contrataciones.')
     except Exception as e:
         st.error(f'Error al generar la gráfica de contrataciones por ejecutivo: {e}')
-
+        
+def grafica_contrataciones_por_empresa(df_altas_filtrado):
+    """
+    Genera gráfica de pie con contrataciones por empresa.
+    
+    Args:
+        df_altas_filtrado: DataFrame filtrado de altas
+    """
+    try:
+        if not df_altas_filtrado.empty:
+            df = df_altas_filtrado.copy()
+            df = df[df['contratados_alta'].astype(int) > 0]
+            if not df.empty:
+                df.replace(EMPRESAS_NOMBRE_CORTO, inplace=True)
+                resumen = df.groupby('empresa_alta')['contratados_alta'].sum().reset_index()
+                resumen = resumen.sort_values('contratados_alta', ascending=False)
+                resumen['total_contratados'] = resumen['contratados_alta'].sum()
+                resumen['porcentaje'] = (resumen['contratados_alta'] / resumen['total_contratados'] * 100).round(1)
+                # Etiqueta combinada
+                resumen['etiqueta'] = resumen.apply(lambda row: f"{row['contratados_alta']} ({row['porcentaje']}%)", axis=1)
+                resumen.rename(columns={'empresa_alta': 'Empresa', 'etiqueta': 'Contratados', 'contratados_alta': 'Total'}, inplace=True)
+                fig = px.bar(
+                    resumen,
+                    x='Total',
+                    y='Empresa',
+                    orientation='h',
+                    text='Contratados',
+                    color='Empresa',
+                    color_discrete_sequence=px.colors.sequential.Turbo,
+                    title='Contrataciones realizadas por Empresa',
+                )
+                fig.update_layout()
+                st.plotly_chart(fig)
+            else:
+                st.info('No se encontró información de contrataciones en el periodo seleccionado.')
+        else:
+            st.info('No se encontró información de contrataciones.')
+    except Exception as e:
+        st.error(f'Error al generar la gráfica de contrataciones por ejecutivo: {e}')
 
 def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
     """
