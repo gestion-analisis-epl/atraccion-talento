@@ -296,7 +296,13 @@ def grafica_embudo_fase_proceso(df_vacantes_filtrado):
             
             if not df.empty:
                 # Filtrar registros que NO sean "CONTRATADO"
-                df = df.loc[(df["fase_proceso"] != "CONTRATADO") & (df["estatus_solicitud"] != "PENDIENTE") & df['fecha_autorizacion'].notna() & (df["estatus_solicitud"] != "CANCELADO")]
+                df = df.loc[
+                (df["fase_proceso"] != "CONTRATADO") & 
+                (df["estatus_solicitud"] != "PENDIENTE") & 
+                df['fecha_autorizacion'].notna() & 
+                (df["estatus_solicitud"] != "CANCELADO") &
+                (df['vacantes_solicitadas'] > 0)
+                ]
                 
                 # Contar por fase de proceso
                 conteo = df['fase_proceso'].value_counts().reset_index()
