@@ -304,7 +304,6 @@ try:
         if not df_contratacion.empty:
             df_contratacion['dias_calculados'] = df_contratacion.apply(calcular_dias_cobertura, axis=1)
             promedio_contratacion = df_contratacion['dias_calculados'].dropna().mean()
-            promedio_contratacion = promedio_contratacion + 0.1
             col7.metric(
                label='Promedio en Vacantes finalizadas',
                value=f"{round(promedio_contratacion)}" if pd.notna(promedio_contratacion) else "0",
