@@ -50,6 +50,7 @@ column_map_vacantes = {
 
 # --- Utilidad de fecha ---
 def convertir_fecha(valor):
+    """Convierte un valor a datetime de forma segura, retornando None si falla."""
     if pd.isna(valor):
         return None
     if isinstance(valor, datetime):
@@ -89,14 +90,17 @@ if st.session_state.get("archivo_ok", False):
             df_vacantes = df[[v for v in column_map_vacantes.values() if v in df.columns]].copy()
             df_vacantes = df_vacantes.rename(columns={v: k for k, v in column_map_vacantes.items()})
 
+            # Convertir fechas de forma segura
             for col in ["fecha_solicitud", "fecha_avance", "fecha_autorizacion", "fecha_cobertura"]:
                 if col in df_vacantes.columns:
                     df_vacantes[col] = df_vacantes[col].apply(convertir_fecha)
+                    # Reemplazar explícitamente NaT por None
+                    df_vacantes[col] = df_vacantes[col].apply(lambda x: None if pd.isna(x) else x)
             
             # Validar fecha de autorización: debe ser del año 2000 en adelante
             if "fecha_autorizacion" in df_vacantes.columns:
                 df_vacantes["fecha_autorizacion"] = df_vacantes["fecha_autorizacion"].apply(
-                    lambda x: x if pd.notna(x) and x.year >= 2000 else None
+                    lambda x: x if x is not None and x.year >= 2000 else None
                 )
 
             df_vacantes["fecha_importacion"] = datetime.now(MEXICO_TZ)
