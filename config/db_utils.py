@@ -1,9 +1,33 @@
 from datetime import datetime, date
 from typing import Any, Dict
 import pytz
+import pandas as pd
 
 # Zona horaria de México
 MEXICO_TZ = pytz.timezone('America/Mexico_City')
+
+# ------------------ Función helper para fechas ------------------
+def convertir_fecha_a_iso(fecha):
+    """
+    Convierte una fecha a formato ISO, manejando NaT y None de forma segura.
+    Retorna None si la fecha es inválida o NaT.
+    """
+    if fecha is None:
+        return None
+    
+    # Verificar si es NaT de pandas
+    if pd.isna(fecha):
+        return None
+    
+    # Verificar si es NaTType explícitamente
+    if hasattr(fecha, '__class__') and fecha.__class__.__name__ == 'NaTType':
+        return None
+    
+    # Si es datetime o date válido, convertir a ISO
+    if isinstance(fecha, (datetime, date)):
+        return fecha.isoformat()
+    
+    return None
 
 # ------------------ Función maestra ------------------
 def insertar_maestra(conn, tipo_registro: str, data: Dict[str, Any]) -> int:
@@ -32,7 +56,7 @@ def insertar_alta(conn, data: Dict[str, Any], id_registro: int):
     
     payload = {
         "id_registro": id_registro,
-        "fecha_alta": data["fecha_alta"].isoformat() if isinstance(data["fecha_alta"], date) else data["fecha_alta"],
+        "fecha_alta": convertir_fecha_a_iso(data.get("fecha_alta")),
         "empresa_alta": data["empresa_alta"],
         "puesto_alta": str(data["puesto_alta"]).strip().upper(),
         "plaza_alta": data["plaza_alta"],
@@ -50,12 +74,12 @@ def insertar_baja(conn, data: Dict[str, Any], id_registro: int):
     
     payload = {
         "id_registro": id_registro,
-        "fecha_baja": data["fecha_baja"].isoformat() if data["fecha_baja"] else None,
+        "fecha_baja": convertir_fecha_a_iso(data.get("fecha_baja")),
         "puesto_baja": str(data["puesto_baja"]).strip().upper(),
         "empresa_baja": data["empresa_baja"],
         "plaza_baja": data["plaza_baja"],
         "area_baja": data["area_baja"],
-        "fecha_ingreso": data["fecha_ingreso"].isoformat() if isinstance(data["fecha_ingreso"], date) else data["fecha_ingreso"],
+        "fecha_ingreso": convertir_fecha_a_iso(data.get("fecha_ingreso")),
         "tipo_baja": data["tipo_baja"],
         "motivo_baja": str(data["motivo_baja"]).strip(),
     }
@@ -68,24 +92,24 @@ def insertar_vacante(conn, data: Dict[str, Any], id_registro: int):
     
     payload = {
         "id_registro": id_registro,
-        "fecha_solicitud": data["fecha_solicitud"].isoformat(),
-        "tipo_solicitud": data["tipo_solicitud"],
-        "estatus_solicitud": data["estatus_solicitud"],
-        "fase_proceso": data["fase_proceso"],
-        "fecha_avance": data["fecha_avance"].isoformat(),
-        "fecha_autorizacion": data["fecha_autorizacion"].isoformat() if data["fecha_autorizacion"] else None,
+        "fecha_solicitud": convertir_fecha_a_iso(data.get("fecha_solicitud")),
+        "tipo_solicitud": data.get("tipo_solicitud"),
+        "estatus_solicitud": data.get("estatus_solicitud"),
+        "fase_proceso": data.get("fase_proceso"),
+        "fecha_avance": convertir_fecha_a_iso(data.get("fecha_avance")),
+        "fecha_autorizacion": convertir_fecha_a_iso(data.get("fecha_autorizacion")),
         "puesto_vacante": str(data["puesto_vacante"]).strip().upper(),
-        "plaza_vacante": data["plaza_vacante"],
-        "empresa_vacante": data["empresa_vacante"],
-        "funcion_area_vacante": data["funcion_area_vacante"].upper(),
-        "vacantes_solicitadas": data["vacantes_solicitadas"],
-        "vacantes_contratados": data["vacantes_contratadas"],
-        "responsable_vacante": data["reponsable_vacante"],
+        "plaza_vacante": data.get("plaza_vacante"),
+        "empresa_vacante": data.get("empresa_vacante"),
+        "funcion_area_vacante": data.get("funcion_area_vacante", "").upper() if data.get("funcion_area_vacante") else None,
+        "vacantes_solicitadas": data.get("vacantes_solicitadas", 0),
+        "vacantes_contratados": data.get("vacantes_contratadas", 0),
+        "responsable_vacante": data.get("reponsable_vacante"),
         "comentarios_vacante": (str(data["comentarios_vacante"]).strip().upper() if data.get("comentarios_vacante") else None), 
-        "tipo_reclutamiento_vacante": data["tipo_reclutamiento_vacante"].strip().upper() if data.get("tipo_reclutamiento_vacante") else None,
-        "medio_reclutamiento_vacante": data["medio_reclutamiento_vacante"].strip().upper() if data.get("medio_reclutamiento_vacante") else None,
-        "fecha_cobertura": data["fecha_cobertura"].isoformat() if data["fecha_cobertura"] else None,
-        "id_sistema": data["id_sistema"] if data.get("id_sistema") else None
+        "tipo_reclutamiento_vacante": data.get("tipo_reclutamiento_vacante", "").strip().upper() if data.get("tipo_reclutamiento_vacante") else None,
+        "medio_reclutamiento_vacante": data.get("medio_reclutamiento_vacante", "").strip().upper() if data.get("medio_reclutamiento_vacante") else None,
+        "fecha_cobertura": convertir_fecha_a_iso(data.get("fecha_cobertura")),
+        "id_sistema": data.get("id_sistema")
     }
     return conn.table("vacantes").insert(payload).execute()
 
@@ -113,24 +137,24 @@ def actualizar_vacante_sistema(conn, data: Dict[str, Any], id_registro: int, id_
     
     payload = {
         "id_registro": id_registro,
-        "fecha_solicitud": data["fecha_solicitud"].isoformat() if data["fecha_solicitud"] else None,
-        "tipo_solicitud": data["tipo_solicitud"],
-        "estatus_solicitud": data["estatus_solicitud"],
-        "fase_proceso": data["fase_proceso"],
-        "fecha_avance": data["fecha_avance"].isoformat() if data["fecha_avance"] else None,
-        "fecha_autorizacion": data["fecha_autorizacion"].isoformat() if data["fecha_autorizacion"] else None,
+        "fecha_solicitud": convertir_fecha_a_iso(data.get("fecha_solicitud")),
+        "tipo_solicitud": data.get("tipo_solicitud"),
+        "estatus_solicitud": data.get("estatus_solicitud"),
+        "fase_proceso": data.get("fase_proceso"),
+        "fecha_avance": convertir_fecha_a_iso(data.get("fecha_avance")),
+        "fecha_autorizacion": convertir_fecha_a_iso(data.get("fecha_autorizacion")),
         "puesto_vacante": str(data["puesto_vacante"]).strip().upper(),
-        "plaza_vacante": data["plaza_vacante"],
-        "empresa_vacante": data["empresa_vacante"],
-        "funcion_area_vacante": data["funcion_area_vacante"].upper() if data.get("funcion_area_vacante") else None,
-        "vacantes_solicitadas": data["vacantes_solicitadas"],
-        "vacantes_contratados": data["vacantes_contratadas"],
-        "responsable_vacante": data["reponsable_vacante"],
+        "plaza_vacante": data.get("plaza_vacante"),
+        "empresa_vacante": data.get("empresa_vacante"),
+        "funcion_area_vacante": data.get("funcion_area_vacante", "").upper() if data.get("funcion_area_vacante") else None,
+        "vacantes_solicitadas": data.get("vacantes_solicitadas", 0),
+        "vacantes_contratados": data.get("vacantes_contratadas", 0),
+        "responsable_vacante": data.get("reponsable_vacante"),
         "comentarios_vacante": (str(data["comentarios_vacante"]).strip().upper().replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U") if data.get("comentarios_vacante") else None),
         "tipo_reclutamiento_vacante": (str(data["tipo_reclutamiento_vacante"]).strip().upper() if data.get("tipo_reclutamiento_vacante") else None),
         "medio_reclutamiento_vacante": (str(data["medio_reclutamiento_vacante"]).strip().upper() if data.get("medio_reclutamiento_vacante") else None),
-        "fecha_cobertura": data["fecha_cobertura"].isoformat() if data["fecha_cobertura"] else None,
-        "id_sistema": data["id_sistema"] if data.get("id_sistema") else None
+        "fecha_cobertura": convertir_fecha_a_iso(data.get("fecha_cobertura")),
+        "id_sistema": data.get("id_sistema")
     }
     
     return conn.table("vacantes").update(payload).eq("id", id_vacante).execute()
