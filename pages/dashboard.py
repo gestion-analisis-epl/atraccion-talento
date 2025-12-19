@@ -39,6 +39,8 @@ todos_registros_altas = data_altas.data
 data_bajas = conn.table("bajas").select("*").execute()
 todos_registros_bajas = data_bajas.data
 
+total_requisiciones_anuales = 243
+
 # Preparar DataFrames
 if todos_registros_vacantes:
     df_vacantes = pd.DataFrame(todos_registros_vacantes)
@@ -196,7 +198,7 @@ col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{
 # Requisiciones vs Contrataciones
 if not df_altas_filtrado.empty and not df_vacantes.empty:
     st.write("### 📉 Requisiciones vs Contrataciones")
-    porcentaje = round((n_contratados / n_vacantes)*100, 2) 
+    porcentaje = round((n_contratados / total_requisiciones_anuales)*100, 2) 
     st.metric(label="Requisiciones VS Contrataciones", value=f'{porcentaje}%')
 elif df_altas_filtrado.empty and not df_vacantes.empty:
     st.error("No hay altas registradas en el período seleccionado.")
