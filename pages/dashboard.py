@@ -88,13 +88,29 @@ años_disponibles = sorted(años_disponibles, reverse=True)
 if not años_disponibles:
     años_disponibles = [datetime.now(MEXICO_TZ).year]
 
+# Obtener lista de ejecutivos únicos
+ejecutivos_disponibles = ["Todos"]
+if not df_altas.empty:
+    df_temp = df_altas.copy()
+    df_temp['primer_nombre'] = df_temp['responsable_alta'].str.split().str[0]
+    df_temp['primer_nombre'] = df_temp['primer_nombre'].replace({'MARTA': 'HELEN'})
+    ejecutivos_unicos = sorted(df_temp['primer_nombre'].dropna().unique().tolist())
+    ejecutivos_disponibles.extend(ejecutivos_unicos)
+
 # Interfaz de filtros
-col_f1, col_f2, col_f3, col_f4 = st.columns([2, 2, 2, 2])
+col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns([2, 2, 2, 2, 2])
 
 with col_f1:
     tipo_filtro = st.selectbox(
         "🗓️ Tipo de filtro",
-        ["Todo el tiempo", "Por año", "Por trimestre", "Por mes", "Por semana"],
+        ["Todo el tiempo", "Por año", "Por trimestre", "Por mes", "Por semana", "Por rango de fechas"],
+        index=0
+    )
+
+with col_f5:
+    ejecutivo_seleccionado = st.selectbox(
+        "👤 Ejecutivo",
+        ejecutivos_disponibles,
         index=0
     )
 
@@ -102,6 +118,8 @@ año_seleccionado = None
 mes_seleccionado = None
 semana_seleccionada = None
 trimestre_seleccionado = None
+fecha_inicio = None
+fecha_fin = None
 
 if tipo_filtro in ["Por año", "Por trimestre", "Por mes", "Por semana"]:
     with col_f2:
@@ -152,13 +170,46 @@ if tipo_filtro == "Por semana" and año_seleccionado:
             inicio, fin = obtener_rango_semana(año_seleccionado, semana_seleccionada)
             st.info(f"📅 {inicio.strftime('%d/%m/%Y')} - {fin.strftime('%d/%m/%Y')}")
 
+if tipo_filtro == "Por rango de fechas":
+    with col_f2:
+        fecha_inicio = st.date_input(
+            "Fecha de inicio",
+            value=datetime.now(MEXICO_TZ).date() - timedelta(days=30),
+            format="DD/MM/YYYY"
+        )
+    with col_f3:
+        fecha_fin = st.date_input(
+            "Fecha de fin",
+            value=datetime.now(MEXICO_TZ).date(),
+            format="DD/MM/YYYY"
+        )
+    with col_f4:
+        if fecha_inicio and fecha_fin:
+            st.info(f"📅 {fecha_inicio.strftime('%d/%m/%Y')} - {fecha_fin.strftime('%d/%m/%Y')}")
+
 st.markdown("---")
 
 # Aplicar filtros
-df_vacantes_filtrado = filtrar_datos(df_vacantes, 'fecha_solicitud', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado)
-df_vacantes_cerradas_filtrado = filtrar_datos(df_vacantes_cerradas, 'fecha_cobertura', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado)
-df_altas_filtrado = filtrar_datos(df_altas, 'fecha_alta', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado)
-df_bajas_filtrado = filtrar_datos(df_bajas, 'fecha_registro_baja', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado)
+df_vacantes_filtrado = filtrar_datos(df_vacantes, 'fecha_solicitud', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+df_vacantes_cerradas_filtrado = filtrar_datos(df_vacantes_cerradas, 'fecha_cobertura', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+df_altas_filtrado = filtrar_datos(df_altas, 'fecha_alta', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+df_bajas_filtrado = filtrar_datos(df_bajas, 'fecha_registro_baja', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+
+# Aplicar filtro de ejecutivo si no es "Todos"
+if ejecutivo_seleccionado != "Todos":
+    # Filtrar altas por ejecutivo
+    if not df_altas_filtrado.empty:
+        df_altas_filtrado_temp = df_altas_filtrado.copy()
+        df_altas_filtrado_temp['primer_nombre'] = df_altas_filtrado_temp['responsable_alta'].str.split().str[0]
+        df_altas_filtrado_temp['primer_nombre'] = df_altas_filtrado_temp['primer_nombre'].replace({'MARTA': 'HELEN'})
+        df_altas_filtrado = df_altas_filtrado_temp[df_altas_filtrado_temp['primer_nombre'] == ejecutivo_seleccionado]
+    
+    # Filtrar vacantes cerradas por ejecutivo (usando responsable_vacante)
+    if not df_vacantes_cerradas_filtrado.empty:
+        df_vacantes_cerradas_temp = df_vacantes_cerradas_filtrado.copy()
+        df_vacantes_cerradas_temp['primer_nombre'] = df_vacantes_cerradas_temp['responsable_vacante'].str.split().str[0]
+        df_vacantes_cerradas_temp['primer_nombre'] = df_vacantes_cerradas_temp['primer_nombre'].replace({'MARTA': 'HELEN'})
+        df_vacantes_cerradas_filtrado = df_vacantes_cerradas_temp[df_vacantes_cerradas_temp['primer_nombre'] == ejecutivo_seleccionado]
 
 # ======================
 # MÉTRICAS PRINCIPALES
@@ -334,7 +385,7 @@ try:
 
             col8.metric(
                 label='Promedio en Administrativas',
-                value=f"{round(promedio_contratacion)}" if pd.notna(promedio_cobertura) else "0",
+                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
                 border=True
             )
         else:

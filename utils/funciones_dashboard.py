@@ -141,7 +141,7 @@ def obtener_rango_trimestre(año, trimestre):
     except Exception as e:
         raise ValueError(f"Error al calcular rango de trimestre: {e}") from e
 
-def filtrar_datos(df, fecha_columna, tipo_filtro, año=None, mes=None, semana=None, trimestre=None):
+def filtrar_datos(df, fecha_columna, tipo_filtro, año=None, mes=None, semana=None, trimestre=None, fecha_inicio=None, fecha_fin=None):
     """Filtra el DataFrame según el tipo de filtro seleccionado"""
     if df.empty:
         return df
@@ -160,5 +160,10 @@ def filtrar_datos(df, fecha_columna, tipo_filtro, año=None, mes=None, semana=No
     elif tipo_filtro == "Por semana" and año and semana:
         inicio, fin = obtener_rango_semana(año, semana)
         return df[(df[fecha_columna] >= inicio) & (df[fecha_columna] <= fin)]
+    elif tipo_filtro == "Por rango de fechas" and fecha_inicio and fecha_fin:
+        # Convertir fechas a datetime para la comparación
+        fecha_inicio_dt = pd.to_datetime(fecha_inicio)
+        fecha_fin_dt = pd.to_datetime(fecha_fin)
+        return df[(df[fecha_columna] >= fecha_inicio_dt) & (df[fecha_columna] <= fecha_fin_dt)]
     else:
         return df
