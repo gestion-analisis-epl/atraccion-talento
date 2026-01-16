@@ -39,7 +39,7 @@ todos_registros_altas = data_altas.data
 data_bajas = conn.table("bajas").select("*").execute()
 todos_registros_bajas = data_bajas.data
 
-total_requisiciones_anuales = 243
+ 
 
 # Preparar DataFrames
 if todos_registros_vacantes:
@@ -194,6 +194,7 @@ df_vacantes_filtrado = filtrar_datos(df_vacantes, 'fecha_solicitud', tipo_filtro
 df_vacantes_cerradas_filtrado = filtrar_datos(df_vacantes_cerradas, 'fecha_cobertura', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_altas_filtrado = filtrar_datos(df_altas, 'fecha_alta', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_bajas_filtrado = filtrar_datos(df_bajas, 'fecha_registro_baja', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+df_requisiciones_filtrado = filtrar_datos(df_vacantes, 'fecha_autorizacion', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 
 # Aplicar filtro de ejecutivo si no es "Todos"
 if ejecutivo_seleccionado != "Todos":
@@ -247,10 +248,14 @@ d = ((n_vacantes-18)/18)*100 # Valor fijo para delta. Se debe cambiar cada seman
 col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{d:.2f}%")
 
 # Requisiciones vs Contrataciones
+total_requisiciones = df_requisiciones_filtrado['vacantes_solicitadas'].astype(int).sum() + df_requisiciones_filtrado['vacantes_contratados'].astype(int).sum()
+if not df_requisiciones_filtrado.empty:
+    with col1:
+        st.metric(label="Requisiciones Totales", value=total_requisiciones)
 if not df_altas_filtrado.empty and not df_vacantes.empty:
-    st.write("### 📉 Requisiciones vs Contrataciones")
-    porcentaje = round((n_contratados / total_requisiciones_anuales)*100, 2) 
-    st.metric(label="Requisiciones VS Contrataciones", value=f'{porcentaje}%')
+    with col2:
+        porcentaje = round((n_contratados / total_requisiciones)*100, 2) 
+        st.metric(label="Requisiciones VS Contrataciones", value=f'{porcentaje}%')
 elif df_altas_filtrado.empty and not df_vacantes.empty:
     st.error("No hay altas registradas en el período seleccionado.")
 elif not df_altas_filtrado.empty and df_vacantes.empty:
