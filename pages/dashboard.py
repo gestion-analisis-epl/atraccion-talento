@@ -350,53 +350,6 @@ st.write("### ⏱️ Días promedio de cobertura en vacantes finalizadas")
 
 col7, col8, col9 = st.columns([2, 2, 2])
 
-# Vacantes Cerradas
-try:
-    if not df_vacantes_cerradas_filtrado.empty:
-        df_contratacion = df_vacantes_cerradas_filtrado[df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0].copy()
-        if not df_contratacion.empty:
-            df_contratacion['dias_calculados'] = df_contratacion.apply(calcular_dias_cobertura, axis=1)
-            promedio_contratacion = df_contratacion['dias_calculados'].dropna().mean()
-            col7.metric(
-               label='Promedio en Vacantes finalizadas',
-               value=f"{round(promedio_contratacion)}" if pd.notna(promedio_contratacion) else "0",
-               border=True
-            )
-        else:
-            col7.metric(label='Promedio en Vacantes finalizadas', value="0", border=True)
-    else:
-        col7.metric(label='Promedio en Vacantes finalizadas', value="0", border=True)
-except Exception as e:
-    st.error(f'Error al calcular contratación: {e}')
-    col7.metric(label='Promedio en Vacantes finalizadas', value="Error", border=True)
-    
-# Vacantes ADMINISTRATIVAS cerradas
-try:
-    if not df_vacantes_cerradas_filtrado.empty:
-        # Filtrar solo las vacantes ADMINISTRATIVAS
-        df_administrativas = df_vacantes_cerradas_filtrado[
-            (df_vacantes_cerradas_filtrado['funcion_area_vacante'] == 'ADMINISTRATIVA') &
-            (df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0)
-        ].copy()
-
-        if not df_administrativas.empty:
-            df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
-            promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
-
-            col8.metric(
-                label='Promedio en Administrativas',
-                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
-                border=True
-            )
-        else:
-            col8.metric(label='Promedio en Administrativas', value="0", border=True)
-    else:
-        col8.metric(label='Promedio en Administrativas', value="0", border=True)
-
-except Exception as e:
-    st.error(f'Error al calcular cobertura: {e}')
-    col8.metric(label='Promedio en Administrativas', value="Error", border=True)
-
 # Vacantes OPERATIVAS cerradas
 try:
     if not df_vacantes_cerradas_filtrado.empty:
