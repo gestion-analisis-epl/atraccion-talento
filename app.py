@@ -50,7 +50,7 @@ def mostrar_app():
     st.title("Atracción de Talento")
     
     with st.sidebar:
-        st.title('Grupo EPL')
+        st.markdown('<h2 style="text-align: center">Especialistas Profesionales de León</h2>', unsafe_allow_html=True)
         st.sidebar.image("img/grupo-epl.png")
         
         # Mostrar usuario logueado y botón de cerrar sesión
