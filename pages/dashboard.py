@@ -39,7 +39,8 @@ todos_registros_altas = data_altas.data
 data_bajas = conn.table("bajas").select("*").execute()
 todos_registros_bajas = data_bajas.data
 
- 
+data_expedientes = conn.table("expedientes").select("*").execute()
+todos_registros_expedientes = data_expedientes.data
 
 # Preparar DataFrames
 if todos_registros_vacantes:
@@ -65,6 +66,12 @@ if todos_registros_bajas:
     df_bajas['fecha_registro_baja'] = pd.to_datetime(df_bajas['fecha_registro_baja'])
 else:
     df_bajas = pd.DataFrame()
+    
+if todos_registros_expedientes:
+    df_expedientes = pd.DataFrame(todos_registros_expedientes)
+    df_expedientes['fecha_ingreso_colaborador'] = pd.to_datetime(df_expedientes['fecha_ingreso_colaborador'])
+else:
+    df_expedientes = pd.DataFrame()
 
 # Obtener años disponibles
 años_disponibles = []
@@ -195,29 +202,60 @@ df_vacantes_cerradas_filtrado = filtrar_datos(df_vacantes_cerradas, 'fecha_cober
 df_altas_filtrado = filtrar_datos(df_altas, 'fecha_alta', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_bajas_filtrado = filtrar_datos(df_bajas, 'fecha_registro_baja', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_requisiciones_filtrado = filtrar_datos(df_vacantes, 'fecha_autorizacion', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+df_expedientes_filtrado = filtrar_datos(df_expedientes, 'fecha_ingreso_colaborador', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 
 # Aplicar filtro de ejecutivo si no es "Todos"
-if ejecutivo_seleccionado != "Todos":
-    # Filtrar altas por ejecutivo
-    if not df_altas_filtrado.empty:
-        df_altas_filtrado_temp = df_altas_filtrado.copy()
-        df_altas_filtrado_temp['primer_nombre'] = df_altas_filtrado_temp['responsable_alta'].str.split().str[0]
-        df_altas_filtrado_temp['primer_nombre'] = df_altas_filtrado_temp['primer_nombre'].replace({'MARTA': 'HELEN', 'LETICIA': 'LETY'})
-        df_altas_filtrado = df_altas_filtrado_temp[df_altas_filtrado_temp['primer_nombre'] == ejecutivo_seleccionado]
+def filtrar_por_ejecutivo(df, columna_responsable, ejecutivo_seleccionado):
+    """
+    Filtra un DataFrame por ejecutivo basándose en el primer nombre del responsable.
     
-    # Filtrar vacantes cerradas por ejecutivo (usando responsable_vacante)
-    if not df_vacantes_cerradas_filtrado.empty:
-        df_vacantes_cerradas_temp = df_vacantes_cerradas_filtrado.copy()
-        df_vacantes_cerradas_temp['primer_nombre'] = df_vacantes_cerradas_temp['responsable_vacante'].str.split().str[0]
-        df_vacantes_cerradas_temp['primer_nombre'] = df_vacantes_cerradas_temp['primer_nombre'].replace({'MARTA': 'HELEN', 'LETICIA': 'LETY'})
-        df_vacantes_cerradas_filtrado = df_vacantes_cerradas_temp[df_vacantes_cerradas_temp['primer_nombre'] == ejecutivo_seleccionado]
-        
-    if not df_requisiciones_filtrado.empty:
-        df_requisiciones_filtrado_temp = df_requisiciones_filtrado.copy()
-        df_requisiciones_filtrado_temp['primer_nombre'] = df_requisiciones_filtrado_temp['responsable_vacante'].str.split().str[0]
-        df_requisiciones_filtrado_temp['primer_nombre'] = df_requisiciones_filtrado_temp['primer_nombre'].replace({'MARTA': 'HELEN', 'LETICIA': 'LETY'})
-        df_requisiciones_filtrado = df_requisiciones_filtrado_temp[df_requisiciones_filtrado_temp['primer_nombre'] == ejecutivo_seleccionado]
+    Args:
+        df: DataFrame a filtrar
+        columna_responsable: Nombre de la columna que contiene el responsable
+        ejecutivo_seleccionado: Nombre del ejecutivo a filtrar
+    
+    Returns:
+        DataFrame filtrado o el mismo DataFrame si está vacío
+    """
+    if df.empty:
+        return df
+    
+    df_temp = df.copy()
+    df_temp['primer_nombre'] = df_temp[columna_responsable].str.split().str[0]
+    df_temp['primer_nombre'] = df_temp['primer_nombre'].replace({
+        'MARTA': 'HELEN', 
+        'LETICIA': 'LETY'
+    })
+    
+    return df_temp[df_temp['primer_nombre'] == ejecutivo_seleccionado]
 
+
+# Uso:
+if ejecutivo_seleccionado != "Todos":
+    df_altas_filtrado = filtrar_por_ejecutivo(
+        df_altas_filtrado, 
+        'responsable_alta', 
+        ejecutivo_seleccionado
+    )
+    
+    df_vacantes_cerradas_filtrado = filtrar_por_ejecutivo(
+        df_vacantes_cerradas_filtrado, 
+        'responsable_vacante', 
+        ejecutivo_seleccionado
+    )
+    
+    df_requisiciones_filtrado = filtrar_por_ejecutivo(
+        df_requisiciones_filtrado, 
+        'responsable_vacante', 
+        ejecutivo_seleccionado
+    )
+    
+    df_expedientes_filtrado = filtrar_por_ejecutivo(
+        df_expedientes_filtrado, 
+        'responsable_expediente', 
+        ejecutivo_seleccionado
+    )
+    
 # ======================
 # MÉTRICAS PRINCIPALES
 # ======================
@@ -393,7 +431,7 @@ try:
         if not df_administrativas.empty:
             df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
-            ponderacion = ((45 / promedio_cobertura).round(1)) * 100
+            ponderacion = f'{45 / promedio_cobertura*100:.2f}%'
 
             col8.metric(
                 label='Promedio en Administrativas',
@@ -422,8 +460,8 @@ try:
         if not df_operativas.empty:
             df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
-            ponderacion = (15 / promedio_cobertura).round(1) * 100
-
+            ponderacion = f'{15 / promedio_cobertura*100:.2f}%'
+            #(15 / promedio_cobertura).round(1) * 100
             col9.metric(
                 label='Promedio en Operativas',
                 value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
@@ -440,6 +478,33 @@ except Exception as e:
     col9.metric(label='Promedio en Operativas', value="Error", border=True)
     
 st.divider()
+
+st.write("### 📁 Expedientes de Colaboradores")
+col10, col11, col12 = st.columns([2, 2, 2])
+# Expedientes completos
+if not df_expedientes_filtrado.empty:
+    expedientes_totales = len(df_expedientes_filtrado)
+else:
+    expedientes_totales = 0
+    with col10: st.info(f'No hay expedientes registrados en el período seleccionado.')
+col10.metric(label='Expedientes Totales', value=expedientes_totales)
+
+if not df_expedientes_filtrado.empty:
+    expedientes_completos = len(df_expedientes_filtrado[df_expedientes_filtrado['estatus_alta'] == "ENTREGADO"])
+else:
+    expedientes_completos = 0
+    with col11: st.info(f'No hay expedientes registrados en el período seleccionado.')
+col11.metric(label='Expedientes Completos', value=expedientes_completos, delta=f"{expedientes_completos/expedientes_totales*100:.2f}%")
+
+if not df_expedientes_filtrado.empty:
+    expedientes_faltantes = len(df_expedientes_filtrado[df_expedientes_filtrado['estatus_alta'] == "PENDIENTE"])
+else:
+    expedientes_faltantes = 0
+    with col12: st.info(f'No hay expedientes registrados en el período seleccionado.')
+col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes, delta=f"{expedientes_faltantes/expedientes_totales*100:.2f}%")
+
+st.divider()
+
 st.write("### 📋 Detalle de las contrataciones")
 try:
     if not df_altas_filtrado.empty:
