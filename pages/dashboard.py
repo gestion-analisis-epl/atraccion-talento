@@ -93,7 +93,7 @@ ejecutivos_disponibles = ["Todos"]
 if not df_altas.empty:
     df_temp = df_altas.copy()
     df_temp['primer_nombre'] = df_temp['responsable_alta'].str.split().str[0]
-    df_temp['primer_nombre'] = df_temp['primer_nombre'].replace({'MARTA': 'HELEN'})
+    df_temp['primer_nombre'] = df_temp['primer_nombre'].replace({'MARTA': 'HELEN', 'LETICIA': 'LETY'})
     ejecutivos_unicos = sorted(df_temp['primer_nombre'].dropna().unique().tolist())
     ejecutivos_disponibles.extend(ejecutivos_unicos)
 
@@ -202,15 +202,21 @@ if ejecutivo_seleccionado != "Todos":
     if not df_altas_filtrado.empty:
         df_altas_filtrado_temp = df_altas_filtrado.copy()
         df_altas_filtrado_temp['primer_nombre'] = df_altas_filtrado_temp['responsable_alta'].str.split().str[0]
-        df_altas_filtrado_temp['primer_nombre'] = df_altas_filtrado_temp['primer_nombre'].replace({'MARTA': 'HELEN'})
+        df_altas_filtrado_temp['primer_nombre'] = df_altas_filtrado_temp['primer_nombre'].replace({'MARTA': 'HELEN', 'LETICIA': 'LETY'})
         df_altas_filtrado = df_altas_filtrado_temp[df_altas_filtrado_temp['primer_nombre'] == ejecutivo_seleccionado]
     
     # Filtrar vacantes cerradas por ejecutivo (usando responsable_vacante)
     if not df_vacantes_cerradas_filtrado.empty:
         df_vacantes_cerradas_temp = df_vacantes_cerradas_filtrado.copy()
         df_vacantes_cerradas_temp['primer_nombre'] = df_vacantes_cerradas_temp['responsable_vacante'].str.split().str[0]
-        df_vacantes_cerradas_temp['primer_nombre'] = df_vacantes_cerradas_temp['primer_nombre'].replace({'MARTA': 'HELEN'})
+        df_vacantes_cerradas_temp['primer_nombre'] = df_vacantes_cerradas_temp['primer_nombre'].replace({'MARTA': 'HELEN', 'LETICIA': 'LETY'})
         df_vacantes_cerradas_filtrado = df_vacantes_cerradas_temp[df_vacantes_cerradas_temp['primer_nombre'] == ejecutivo_seleccionado]
+        
+    if not df_requisiciones_filtrado.empty:
+        df_requisiciones_filtrado_temp = df_requisiciones_filtrado.copy()
+        df_requisiciones_filtrado_temp['primer_nombre'] = df_requisiciones_filtrado_temp['responsable_vacante'].str.split().str[0]
+        df_requisiciones_filtrado_temp['primer_nombre'] = df_requisiciones_filtrado_temp['primer_nombre'].replace({'MARTA': 'HELEN', 'LETICIA': 'LETY'})
+        df_requisiciones_filtrado = df_requisiciones_filtrado_temp[df_requisiciones_filtrado_temp['primer_nombre'] == ejecutivo_seleccionado]
 
 # ======================
 # MÉTRICAS PRINCIPALES
@@ -365,7 +371,7 @@ try:
             col7.metric(
                label='Promedio en Vacantes finalizadas',
                value=f"{round(promedio_contratacion)}" if pd.notna(promedio_contratacion) else "0",
-               border=True
+               border=True,
             )
         else:
             col7.metric(label='Promedio en Vacantes finalizadas', value="0", border=True)
@@ -387,11 +393,13 @@ try:
         if not df_administrativas.empty:
             df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
+            ponderacion = ((45 / promedio_cobertura).round(1)) * 100
 
             col8.metric(
                 label='Promedio en Administrativas',
                 value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
-                border=True
+                border=True,
+                delta=ponderacion,
             )
         else:
             col8.metric(label='Promedio en Administrativas', value="0", border=True)
@@ -414,11 +422,13 @@ try:
         if not df_operativas.empty:
             df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
+            ponderacion = (15 / promedio_cobertura).round(1) * 100
 
             col9.metric(
                 label='Promedio en Operativas',
                 value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
-                border=True
+                border=True,
+                delta=ponderacion,
             )
         else:
             col9.metric(label='Promedio en Operativas', value="0", border=True)

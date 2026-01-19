@@ -22,7 +22,7 @@ def verificar_login(usuario, password):
 def mostrar_login():
     """Muestra la pantalla de login"""
     st.title("🔐 Acceso al Sistema")
-    st.markdown("### Atracción de Talento - Grupo EPL")
+    st.markdown("### Atracción de Talento - Especialistas Profesionales de León")
     
     col1, col2, col3 = st.columns([1, 2, 1])
     
