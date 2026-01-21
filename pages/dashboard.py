@@ -298,8 +298,11 @@ if not df_requisiciones_filtrado.empty:
         st.metric(label="Requisiciones Totales", value=total_requisiciones)
 if not df_altas_filtrado.empty and not df_vacantes.empty:
     with col2:
-        porcentaje = round((n_contratados / total_requisiciones)*100, 2) 
-        st.metric(label="Requisiciones VS Contrataciones", value=f'{porcentaje}%')
+        if total_requisiciones > 0:
+            porcentaje = round((n_contratados / total_requisiciones)*100, 2) 
+            st.metric(label="Requisiciones VS Contrataciones", value=f'{porcentaje}%')
+        else:
+            st.metric(label="Requisiciones VS Contrataciones", value="0%")
 elif df_altas_filtrado.empty and not df_vacantes.empty:
     st.error("No hay altas registradas en el período seleccionado.")
 elif not df_altas_filtrado.empty and df_vacantes.empty:
@@ -431,7 +434,11 @@ try:
         if not df_administrativas.empty:
             df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
-            ponderacion = f'{45 / promedio_cobertura*100:.2f}%'
+            
+            if pd.notna(promedio_cobertura) and promedio_cobertura > 0:
+                ponderacion = f'{45 / promedio_cobertura*100:.2f}%'
+            else:
+                ponderacion = None
 
             col8.metric(
                 label='Promedio en Administrativas',
@@ -460,8 +467,12 @@ try:
         if not df_operativas.empty:
             df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
             promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
-            ponderacion = f'{15 / promedio_cobertura*100:.2f}%'
-            #(15 / promedio_cobertura).round(1) * 100
+            
+            if pd.notna(promedio_cobertura) and promedio_cobertura > 0:
+                ponderacion = f'{15 / promedio_cobertura*100:.2f}%'
+            else:
+                ponderacion = None
+            
             col9.metric(
                 label='Promedio en Operativas',
                 value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
@@ -494,14 +505,22 @@ if not df_expedientes_filtrado.empty:
 else:
     expedientes_completos = 0
     with col11: st.info(f'No hay expedientes registrados en el período seleccionado.')
-col11.metric(label='Expedientes Completos', value=expedientes_completos, delta=f"{expedientes_completos/expedientes_totales*100:.2f}%")
+
+if expedientes_totales > 0:
+    col11.metric(label='Expedientes Completos', value=expedientes_completos, delta=f"{expedientes_completos/expedientes_totales*100:.2f}%")
+else:
+    col11.metric(label='Expedientes Completos', value=expedientes_completos)
 
 if not df_expedientes_filtrado.empty:
     expedientes_faltantes = len(df_expedientes_filtrado[df_expedientes_filtrado['estatus_alta'] == "PENDIENTE"])
 else:
     expedientes_faltantes = 0
     with col12: st.info(f'No hay expedientes registrados en el período seleccionado.')
-col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes, delta=f"{expedientes_faltantes/expedientes_totales*100:.2f}%")
+
+if expedientes_totales > 0:
+    col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes, delta=f"{expedientes_faltantes/expedientes_totales*100:.2f}%")
+else:
+    col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes)
 
 st.divider()
 
