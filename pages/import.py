@@ -24,7 +24,7 @@ st.write("### Importar datos desde archivo de Enla-c")
 
 # --- Subida del archivo ---
 archivo = st.file_uploader("Selecciona un archivo", type=["xlsx", "xls"], key="import_file")
-subir_archivo = st.button("📤 Verificar archivo", type="primary")
+subir_archivo = st.button(":material/upload_file: Verificar archivo", type="primary")
 
 # --- Mapeos de columnas ---
 column_map_vacantes = {
@@ -84,7 +84,7 @@ if st.session_state.get("archivo_ok", False):
     st.dataframe(df_preview.head(10))
     st.write("Confirma que el archivo es correcto antes de subirlo a la base de datos.")
 
-    if st.button("✅ Confirmar", type="primary", key="confirmar_subida"):
+    if st.button(":material/check: Confirmar", type="primary", key="confirmar_subida"):
         try:
             df = df_preview.copy()
             df_vacantes = df[[v for v in column_map_vacantes.values() if v in df.columns]].copy()
@@ -198,13 +198,13 @@ if st.session_state.get("archivo_ok", False):
                             raise Exception("No se generó ID de maestra")
                         
                         insertar_vacante(conn, vacante_data, id_maestra)
-                        logs.append(f"✅ Registro nuevo insertado (ID Sistema: {id_sistema_actual})")
+                        logs.append(f":material/check: Registro nuevo insertado (ID Sistema: {id_sistema_actual})")
                         registros_nuevos += 1
                         registros_exitosos += 1
 
                 except Exception as e:
                     registros_fallidos += 1
-                    error_msg = f"⚠️ Error en fila {idx + 1}: {e}"
+                    error_msg = f":material/warning: Error en fila {idx + 1}: {e}"
                     logs.append(error_msg)
                     errores.append(error_msg)
 
@@ -216,18 +216,18 @@ if st.session_state.get("archivo_ok", False):
             progress_bar.empty()
             status_text.empty()
 
-            st.success(f"✅ Importación completada: {registros_exitosos} registros procesados.")
+            st.success(f":material/check: Importación completada: {registros_exitosos} registros procesados.")
             
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("📝 Nuevos", registros_nuevos)
+                st.metric(":material/edit: Nuevos", registros_nuevos)
             with col2:
-                st.metric("🔄 Actualizados", registros_actualizados)
+                st.metric(":material/update: Actualizados", registros_actualizados)
             with col3:
-                st.metric("⚠️ Fallidos", registros_fallidos)
+                st.metric(":material/warning: Fallidos", registros_fallidos)
             
             if registros_fallidos > 0:
-                st.warning(f"⚠️ {registros_fallidos} registros fallaron.")
+                st.warning(f":material/warning: {registros_fallidos} registros fallaron.")
                 with st.expander("Ver errores"):
                     for err in errores[:10]:
                         st.error(err)

@@ -26,7 +26,7 @@ conn = st.connection("supabase", type=SupabaseConnection)
 # ======================
 # FILTROS
 # ======================
-st.write("### 📊 Dashboard de Reclutamiento")
+st.write("### :material/chart_data: Dashboard de Reclutamiento")
 st.markdown("---")
 
 # Obtener datos completos
@@ -109,14 +109,14 @@ col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns([2, 2, 2, 2, 2])
 
 with col_f1:
     tipo_filtro = st.selectbox(
-        "🗓️ Tipo de filtro",
+        ":material/filter_alt: Tipo de filtro",
         ["Todo el tiempo", "Por año", "Por trimestre", "Por mes", "Por semana", "Por rango de fechas"],
         index=0
     )
 
 with col_f5:
     ejecutivo_seleccionado = st.selectbox(
-        "👤 Ejecutivo",
+        ":material/person: Ejecutivo",
         ejecutivos_disponibles,
         index=0
     )
@@ -141,7 +141,7 @@ if tipo_filtro == "Por trimestre" and año_seleccionado:
     with col_f4:
         if trimestre_seleccionado:
             inicio, fin = obtener_rango_trimestre(año_seleccionado, trimestre_seleccionado)
-            st.info(f"📅 {inicio.strftime('%d/%m/%Y')} - {fin.strftime('%d/%m/%Y')}")
+            st.info(f":material/calendar_today: {inicio.strftime('%d/%m/%Y')} - {fin.strftime('%d/%m/%Y')}")
 
 if tipo_filtro == "Por mes" and año_seleccionado:
     with col_f3:
@@ -175,7 +175,7 @@ if tipo_filtro == "Por semana" and año_seleccionado:
     with col_f4:
         if semana_seleccionada:
             inicio, fin = obtener_rango_semana(año_seleccionado, semana_seleccionada)
-            st.info(f"📅 {inicio.strftime('%d/%m/%Y')} - {fin.strftime('%d/%m/%Y')}")
+            st.info(f":material/calendar_today: {inicio.strftime('%d/%m/%Y')} - {fin.strftime('%d/%m/%Y')}")
 
 if tipo_filtro == "Por rango de fechas":
     with col_f2:
@@ -192,7 +192,7 @@ if tipo_filtro == "Por rango de fechas":
         )
     with col_f4:
         if fecha_inicio and fecha_fin:
-            st.info(f"📅 {fecha_inicio.strftime('%d/%m/%Y')} - {fecha_fin.strftime('%d/%m/%Y')}")
+            st.info(f":material/calendar_today: {fecha_inicio.strftime('%d/%m/%Y')} - {fecha_fin.strftime('%d/%m/%Y')}")
 
 st.markdown("---")
 
@@ -259,330 +259,333 @@ if ejecutivo_seleccionado != "Todos":
 # ======================
 # MÉTRICAS PRINCIPALES
 # ======================
-st.write("### 📈 Métricas principales")
+st.write("### :material/search_insights: Métricas principales")
+tab1, tab2, tab3 = st.tabs(["Métricas Principales", "Análisis Visual", "Información de Vacantes"])
+with tab1:
+    col1, col2, col3 = st.columns([2, 2, 2])
 
-col1, col2, col3 = st.columns([2, 2, 2])
-
-# No. CONTRATADOS
-if not df_altas_filtrado.empty:
-    n_contratados = df_altas_filtrado['contratados_alta'].astype(int).sum()
-else:
-    n_contratados = 0
-    with col1:st.info(f'No hay altas registradas en el período seleccionado.')
-col1.metric(label='Contratados Totales', value=n_contratados)
-
-try:
-    if not df_bajas_filtrado.empty:
-        df_bajas = df_bajas_filtrado[df_bajas_filtrado['id'] > 0].copy()
-        n_bajas = len(df_bajas)
+    # No. CONTRATADOS
+    if not df_altas_filtrado.empty:
+        n_contratados = df_altas_filtrado['contratados_alta'].astype(int).sum()
     else:
-        n_bajas = 0
-        with col2: st.info(f'No hay bajas registradas en el período seleccionado.')
-    col2.metric(label='Bajas Totales', value=n_bajas)
-except Exception as e:
-    st.error(f'Error al calcular bajas: {e}')
+        n_contratados = 0
+        with col1:st.info(f'No hay altas registradas en el período seleccionado.')
+    col1.metric(label='Contratados Totales', value=n_contratados)
 
-# No. VACANTES
-if not df_vacantes.empty:
-    n_vacantes = df_vacantes[df_vacantes['fecha_autorizacion'].notna()]['vacantes_solicitadas'].astype(int).sum()
-else:
-    n_vacantes = 0
-    st.error(f'Error al calcular vacantes. No se encontraron datos.')
-d = ((n_vacantes-18)/18)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
-col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{d:.2f}%")
-
-# Requisiciones vs Contrataciones
-total_requisiciones = df_requisiciones_filtrado['vacantes_solicitadas'].astype(int).sum() + df_requisiciones_filtrado['vacantes_contratados'].astype(int).sum()
-if not df_requisiciones_filtrado.empty:
-    with col1:
-        st.metric(label="Requisiciones Totales", value=total_requisiciones)
-if not df_altas_filtrado.empty and not df_vacantes.empty:
-    with col2:
-        if total_requisiciones > 0:
-            porcentaje = round((n_contratados / total_requisiciones)*100, 2) 
-            st.metric(label="Requisiciones VS Contrataciones", value=f'{porcentaje}%')
+    try:
+        if not df_bajas_filtrado.empty:
+            df_bajas = df_bajas_filtrado[df_bajas_filtrado['id'] > 0].copy()
+            n_bajas = len(df_bajas)
         else:
-            st.metric(label="Requisiciones VS Contrataciones", value="0%")
-elif df_altas_filtrado.empty and not df_vacantes.empty:
-    st.error("No hay altas registradas en el período seleccionado.")
-elif not df_altas_filtrado.empty and df_vacantes.empty:
-    st.error("No hay vacantes registradas en el período seleccionado.")
-else:
-    st.error("Error al calcular requisiciones vs contrataciones.")
+            n_bajas = 0
+            with col2: st.info(f'No hay bajas registradas en el período seleccionado.')
+        col2.metric(label='Bajas Totales', value=n_bajas)
+    except Exception as e:
+        st.error(f'Error al calcular bajas: {e}')
 
-st.divider()
-
-# ======================
-# DIAS DE COBERTURA
-# ======================
-
-st.write("### ⏱️ Días promedio de cobertura")
-
-col4, col5, col6 = st.columns([2, 2, 2])
-
-# Vacantes Abiertas
-try:
+    # No. VACANTES
     if not df_vacantes.empty:
-        df_cobertura =df_vacantes[(df_vacantes['vacantes_solicitadas'] > 0) & (df_vacantes['fecha_autorizacion'].notna())].copy()
-        if not df_cobertura.empty:
-            df_cobertura['dias_calculados'] = df_cobertura.apply(calcular_dias_cobertura, axis=1)
-            promedio_cobertura = df_cobertura['dias_calculados'].dropna().mean()
-            col4.metric(
-                label='Promedio en vacantes disponibles', 
-                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
-                border=True
-            )
+        n_vacantes = df_vacantes[df_vacantes['fecha_autorizacion'].notna()]['vacantes_solicitadas'].astype(int).sum()
+    else:
+        n_vacantes = 0
+        st.error(f'Error al calcular vacantes. No se encontraron datos.')
+    d = ((n_vacantes-18)/18)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
+    col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{d:.2f}%")
+
+    # Requisiciones vs Contrataciones
+    total_requisiciones = df_requisiciones_filtrado['vacantes_solicitadas'].astype(int).sum() + df_requisiciones_filtrado['vacantes_contratados'].astype(int).sum()
+    if not df_requisiciones_filtrado.empty:
+        with col1:
+            st.metric(label="Requisiciones Totales", value=total_requisiciones)
+    if not df_altas_filtrado.empty and not df_vacantes.empty:
+        with col2:
+            if total_requisiciones > 0:
+                porcentaje = round((n_contratados / total_requisiciones)*100, 2) 
+                st.metric(label="Requisiciones VS Contrataciones", value=f'{porcentaje}%')
+            else:
+                st.metric(label="Requisiciones VS Contrataciones", value="0%")
+    elif df_altas_filtrado.empty and not df_vacantes.empty:
+        st.error("No hay altas registradas en el período seleccionado.")
+    elif not df_altas_filtrado.empty and df_vacantes.empty:
+        st.error("No hay vacantes registradas en el período seleccionado.")
+    else:
+        st.error("Error al calcular requisiciones vs contrataciones.")
+
+    st.divider()
+
+    # ======================
+    # DIAS DE COBERTURA
+    # ======================
+
+    st.write("### :material/clock_loader_20: Días promedio de cobertura")
+
+    col4, col5, col6 = st.columns([2, 2, 2])
+
+    # Vacantes Abiertas
+    try:
+        if not df_vacantes.empty:
+            df_cobertura =df_vacantes[(df_vacantes['vacantes_solicitadas'] > 0) & (df_vacantes['fecha_autorizacion'].notna())].copy()
+            if not df_cobertura.empty:
+                df_cobertura['dias_calculados'] = df_cobertura.apply(calcular_dias_cobertura, axis=1)
+                promedio_cobertura = df_cobertura['dias_calculados'].dropna().mean()
+                col4.metric(
+                    label='Promedio en vacantes disponibles', 
+                    value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
+                    border=True
+                )
+            else:
+                col4.metric(label='Promedio en vacantes disponibles', value="0", border=True)
         else:
             col4.metric(label='Promedio en vacantes disponibles', value="0", border=True)
-    else:
-        col4.metric(label='Promedio en vacantes disponibles', value="0", border=True)
-except Exception as e:
-    st.error(f'Error al calcular cobertura: {e}')
-    col4.metric(label='Promedio en vacantes disponibles', value="Error", border=True)
+    except Exception as e:
+        st.error(f'Error al calcular cobertura: {e}')
+        col4.metric(label='Promedio en vacantes disponibles', value="Error", border=True)
 
-# Vacantes ADMINISTRATIVAS
-try:
-    if not df_vacantes.empty:
-        # Filtrar solo las vacantes ADMINISTRATIVAS
-        df_administrativas = df_vacantes[
-            (df_vacantes['funcion_area_vacante'] == 'ADMINISTRATIVA') &
-            (df_vacantes['vacantes_solicitadas'] > 0) &
-            (df_vacantes['fecha_autorizacion'].notna())
-        ].copy()
+    # Vacantes ADMINISTRATIVAS
+    try:
+        if not df_vacantes.empty:
+            # Filtrar solo las vacantes ADMINISTRATIVAS
+            df_administrativas = df_vacantes[
+                (df_vacantes['funcion_area_vacante'] == 'ADMINISTRATIVA') &
+                (df_vacantes['vacantes_solicitadas'] > 0) &
+                (df_vacantes['fecha_autorizacion'].notna())
+            ].copy()
 
-        if not df_administrativas.empty:
-            df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
-            promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
+            if not df_administrativas.empty:
+                df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
+                promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
 
-            col5.metric(
-                label='Promedio en Administrativas',
-                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
-                border=True
-            )
+                col5.metric(
+                    label='Promedio en Administrativas',
+                    value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
+                    border=True
+                )
+            else:
+                col5.metric(label='Promedio en Administrativas', value="0", border=True)
         else:
             col5.metric(label='Promedio en Administrativas', value="0", border=True)
-    else:
-        col5.metric(label='Promedio en Administrativas', value="0", border=True)
 
-except Exception as e:
-    st.error(f'Error al calcular cobertura: {e}')
-    col5.metric(label='Promedio en Administrativas', value="Error", border=True)
+    except Exception as e:
+        st.error(f'Error al calcular cobertura: {e}')
+        col5.metric(label='Promedio en Administrativas', value="Error", border=True)
 
-# Vacantes OPERATIVAS
-try:
-    if not df_vacantes.empty:
-        # Filtrar solo las vacantes OPERATIVAS
-        df_operativas = df_vacantes[
-            (df_vacantes['funcion_area_vacante'] == 'OPERATIVA') &
-            (df_vacantes['vacantes_solicitadas'] > 0) &
-            (df_vacantes['fecha_autorizacion'].notna())
-        ].copy()
+    # Vacantes OPERATIVAS
+    try:
+        if not df_vacantes.empty:
+            # Filtrar solo las vacantes OPERATIVAS
+            df_operativas = df_vacantes[
+                (df_vacantes['funcion_area_vacante'] == 'OPERATIVA') &
+                (df_vacantes['vacantes_solicitadas'] > 0) &
+                (df_vacantes['fecha_autorizacion'].notna())
+            ].copy()
 
-        if not df_operativas.empty:
-            df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
-            promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
+            if not df_operativas.empty:
+                df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
+                promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
 
-            col6.metric(
-                label='Promedio en Operativas',
-                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
-                border=True
-            )
+                col6.metric(
+                    label='Promedio en Operativas',
+                    value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
+                    border=True
+                )
+            else:
+                col6.metric(label='Promedio en Operativas', value="0", border=True)
         else:
             col6.metric(label='Promedio en Operativas', value="0", border=True)
-    else:
-        col6.metric(label='Promedio en Operativas', value="0", border=True)
 
-except Exception as e:
-    st.error(f'Error al calcular cobertura: {e}')
-    col6.metric(label='Promedio en Operativas', value="Error", border=True)
+    except Exception as e:
+        st.error(f'Error al calcular cobertura: {e}')
+        col6.metric(label='Promedio en Operativas', value="Error", border=True)
 
-st.divider()
+    st.divider()
 
-st.write("### ⏱️ Días promedio de cobertura en vacantes finalizadas")
+    st.write("### :material/clock_loader_90: Días promedio de cobertura en vacantes finalizadas")
 
-col7, col8, col9 = st.columns([2, 2, 2])
+    col7, col8, col9 = st.columns([2, 2, 2])
 
-# Vacantes Cerradas
-try:
-    if not df_vacantes_cerradas_filtrado.empty:
-        df_contratacion = df_vacantes_cerradas_filtrado[df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0].copy()
-        if not df_contratacion.empty:
-            df_contratacion['dias_calculados'] = df_contratacion.apply(calcular_dias_cobertura, axis=1)
-            promedio_contratacion = df_contratacion['dias_calculados'].dropna().mean()
-            col7.metric(
-               label='Promedio en Vacantes finalizadas',
-               value=f"{round(promedio_contratacion)}" if pd.notna(promedio_contratacion) else "0",
-               border=True,
-            )
+    # Vacantes Cerradas
+    try:
+        if not df_vacantes_cerradas_filtrado.empty:
+            df_contratacion = df_vacantes_cerradas_filtrado[df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0].copy()
+            if not df_contratacion.empty:
+                df_contratacion['dias_calculados'] = df_contratacion.apply(calcular_dias_cobertura, axis=1)
+                promedio_contratacion = df_contratacion['dias_calculados'].dropna().mean()
+                col7.metric(
+                label='Promedio en Vacantes finalizadas',
+                value=f"{round(promedio_contratacion)}" if pd.notna(promedio_contratacion) else "0",
+                border=True,
+                )
+            else:
+                col7.metric(label='Promedio en Vacantes finalizadas', value="0", border=True)
         else:
             col7.metric(label='Promedio en Vacantes finalizadas', value="0", border=True)
-    else:
-        col7.metric(label='Promedio en Vacantes finalizadas', value="0", border=True)
-except Exception as e:
-    st.error(f'Error al calcular contratación: {e}')
-    col7.metric(label='Promedio en Vacantes finalizadas', value="Error", border=True)
-    
-# Vacantes ADMINISTRATIVAS cerradas
-try:
-    if not df_vacantes_cerradas_filtrado.empty:
-        # Filtrar solo las vacantes ADMINISTRATIVAS
-        df_administrativas = df_vacantes_cerradas_filtrado[
-            (df_vacantes_cerradas_filtrado['funcion_area_vacante'] == 'ADMINISTRATIVA') &
-            (df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0)
-        ].copy()
+    except Exception as e:
+        st.error(f'Error al calcular contratación: {e}')
+        col7.metric(label='Promedio en Vacantes finalizadas', value="Error", border=True)
+        
+    # Vacantes ADMINISTRATIVAS cerradas
+    try:
+        if not df_vacantes_cerradas_filtrado.empty:
+            # Filtrar solo las vacantes ADMINISTRATIVAS
+            df_administrativas = df_vacantes_cerradas_filtrado[
+                (df_vacantes_cerradas_filtrado['funcion_area_vacante'] == 'ADMINISTRATIVA') &
+                (df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0)
+            ].copy()
 
-        if not df_administrativas.empty:
-            df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
-            promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
-            
-            if pd.notna(promedio_cobertura) and promedio_cobertura > 0:
-                ponderacion = f'{45 / promedio_cobertura*100:.2f}%'
+            if not df_administrativas.empty:
+                df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
+                promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
+                
+                if pd.notna(promedio_cobertura) and promedio_cobertura > 0:
+                    ponderacion = f'{45 / promedio_cobertura*100:.2f}%'
+                else:
+                    ponderacion = None
+
+                col8.metric(
+                    label='Promedio en Administrativas',
+                    value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
+                    border=True,
+                    delta=ponderacion,
+                )
             else:
-                ponderacion = None
-
-            col8.metric(
-                label='Promedio en Administrativas',
-                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
-                border=True,
-                delta=ponderacion,
-            )
+                col8.metric(label='Promedio en Administrativas', value="0", border=True)
         else:
             col8.metric(label='Promedio en Administrativas', value="0", border=True)
-    else:
-        col8.metric(label='Promedio en Administrativas', value="0", border=True)
 
-except Exception as e:
-    st.error(f'Error al calcular cobertura: {e}')
-    col8.metric(label='Promedio en Administrativas', value="Error", border=True)
+    except Exception as e:
+        st.error(f'Error al calcular cobertura: {e}')
+        col8.metric(label='Promedio en Administrativas', value="Error", border=True)
 
-# Vacantes OPERATIVAS cerradas
-try:
-    if not df_vacantes_cerradas_filtrado.empty:
-        # Filtrar solo las vacantes OPERATIVAS
-        df_operativas = df_vacantes_cerradas_filtrado[
-            (df_vacantes_cerradas_filtrado['funcion_area_vacante'] == 'OPERATIVA') &
-            (df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0)
-        ].copy()
+    # Vacantes OPERATIVAS cerradas
+    try:
+        if not df_vacantes_cerradas_filtrado.empty:
+            # Filtrar solo las vacantes OPERATIVAS
+            df_operativas = df_vacantes_cerradas_filtrado[
+                (df_vacantes_cerradas_filtrado['funcion_area_vacante'] == 'OPERATIVA') &
+                (df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0)
+            ].copy()
 
-        if not df_operativas.empty:
-            df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
-            promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
-            
-            if pd.notna(promedio_cobertura) and promedio_cobertura > 0:
-                ponderacion = f'{15 / promedio_cobertura*100:.2f}%'
+            if not df_operativas.empty:
+                df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
+                promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
+                
+                if pd.notna(promedio_cobertura) and promedio_cobertura > 0:
+                    ponderacion = f'{15 / promedio_cobertura*100:.2f}%'
+                else:
+                    ponderacion = None
+                
+                col9.metric(
+                    label='Promedio en Operativas',
+                    value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
+                    border=True,
+                    delta=ponderacion,
+                )
             else:
-                ponderacion = None
-            
-            col9.metric(
-                label='Promedio en Operativas',
-                value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
-                border=True,
-                delta=ponderacion,
-            )
+                col9.metric(label='Promedio en Operativas', value="0", border=True)
         else:
             col9.metric(label='Promedio en Operativas', value="0", border=True)
+
+    except Exception as e:
+        st.error(f'Error al calcular cobertura: {e}')
+        col9.metric(label='Promedio en Operativas', value="Error", border=True)
+        
+    st.divider()
+
+    st.write("### :material/files: Expedientes de Colaboradores")
+    col10, col11, col12 = st.columns([2, 2, 2])
+    # Expedientes completos
+    if not df_expedientes_filtrado.empty:
+        expedientes_totales = len(df_expedientes_filtrado)
     else:
-        col9.metric(label='Promedio en Operativas', value="0", border=True)
+        expedientes_totales = 0
+        with col10: st.info(f'No hay expedientes registrados en el período seleccionado.')
+    col10.metric(label='Expedientes Totales', value=expedientes_totales)
 
-except Exception as e:
-    st.error(f'Error al calcular cobertura: {e}')
-    col9.metric(label='Promedio en Operativas', value="Error", border=True)
-    
-st.divider()
-
-st.write("### 📁 Expedientes de Colaboradores")
-col10, col11, col12 = st.columns([2, 2, 2])
-# Expedientes completos
-if not df_expedientes_filtrado.empty:
-    expedientes_totales = len(df_expedientes_filtrado)
-else:
-    expedientes_totales = 0
-    with col10: st.info(f'No hay expedientes registrados en el período seleccionado.')
-col10.metric(label='Expedientes Totales', value=expedientes_totales)
-
-if not df_expedientes_filtrado.empty:
-    expedientes_completos = len(df_expedientes_filtrado[df_expedientes_filtrado['estatus_alta'] == "ENTREGADO"])
-else:
-    expedientes_completos = 0
-    with col11: st.info(f'No hay expedientes registrados en el período seleccionado.')
-
-if expedientes_totales > 0:
-    col11.metric(label='Expedientes Completos', value=expedientes_completos, delta=f"{expedientes_completos/expedientes_totales*100:.2f}%")
-else:
-    col11.metric(label='Expedientes Completos', value=expedientes_completos)
-
-if not df_expedientes_filtrado.empty:
-    expedientes_faltantes = len(df_expedientes_filtrado[df_expedientes_filtrado['estatus_alta'] == "PENDIENTE"])
-else:
-    expedientes_faltantes = 0
-    with col12: st.info(f'No hay expedientes registrados en el período seleccionado.')
-
-if expedientes_totales > 0:
-    col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes, delta=f"{expedientes_faltantes/expedientes_totales*100:.2f}%")
-else:
-    col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes)
-
-st.divider()
-
-st.write("### 📋 Detalle de las contrataciones")
-try:
-    if not df_altas_filtrado.empty:
-        df = df_altas_filtrado.copy()
-        df = df.rename(columns={
-            'empresa_alta': 'Empresa',
-            "puesto_alta": "Puesto",
-            "plaza_alta": "Plaza",
-            "area_alta": "Área",
-            "medio_reclutamiento_alta": "Medio de reclutamiento",
-            "responsable_alta": "Ejecutivo de reclutamiento",
-            'contratados_alta': 'Contratados',
-        })
-        confidencial = df['confidencial'] != 'SI'
-        st.dataframe(df[confidencial],
-                     column_config={
-                         "id": None,
-                         "id_registro": None,
-                         "fecha_alta": None,
-                         "contratados_alta": None, 
-                         'confidencial': None,
-                     }, hide_index=True, width="stretch")
+    if not df_expedientes_filtrado.empty:
+        expedientes_completos = len(df_expedientes_filtrado[df_expedientes_filtrado['estatus_alta'] == "ENTREGADO"])
     else:
-        st.write("No hay datos disponibles para mostrar.")
-except Exception as e:
-    st.error(f'Error al mostrar datos detallados: {e}')
+        expedientes_completos = 0
+        with col11: st.info(f'No hay expedientes registrados en el período seleccionado.')
 
-st.divider()
+    if expedientes_totales > 0:
+        col11.metric(label='Expedientes Completos', value=expedientes_completos, delta=f"{expedientes_completos/expedientes_totales*100:.2f}%")
+    else:
+        col11.metric(label='Expedientes Completos', value=expedientes_completos)
+
+    if not df_expedientes_filtrado.empty:
+        expedientes_faltantes = len(df_expedientes_filtrado[df_expedientes_filtrado['estatus_alta'] == "PENDIENTE"])
+    else:
+        expedientes_faltantes = 0
+        with col12: st.info(f'No hay expedientes registrados en el período seleccionado.')
+
+    if expedientes_totales > 0:
+        col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes, delta=f"{expedientes_faltantes/expedientes_totales*100:.2f}%")
+    else:
+        col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes)
+
+    st.divider()
+
+    st.write("### :material/docs: Detalle de las contrataciones")
+    try:
+        if not df_altas_filtrado.empty:
+            df = df_altas_filtrado.copy()
+            df = df.rename(columns={
+                'empresa_alta': 'Empresa',
+                "puesto_alta": "Puesto",
+                "plaza_alta": "Plaza",
+                "area_alta": "Área",
+                "medio_reclutamiento_alta": "Medio de reclutamiento",
+                "responsable_alta": "Ejecutivo de reclutamiento",
+                'contratados_alta': 'Contratados',
+            })
+            confidencial = df['confidencial'] != 'SI'
+            st.dataframe(df[confidencial],
+                        column_config={
+                            "id": None,
+                            "id_registro": None,
+                            "fecha_alta": None,
+                            "contratados_alta": None, 
+                            'confidencial': None,
+                        }, hide_index=True, width="stretch")
+        else:
+            st.write("No hay datos disponibles para mostrar.")
+    except Exception as e:
+        st.error(f'Error al mostrar datos detallados: {e}')
+
+    st.divider()
 
 # ======================
 # GRAFICAS
 # ======================
+with tab2:
+    st.write("### 📊 Análisis visual")
 
-st.write("### 📊 Análisis visual")
+    # Gráficas de contrataciones (con filtro)
+    st.write("#### Contrataciones por Ejecutivo")
+    grafica_contrataciones_por_ejecutivo(df_altas_filtrado)
 
-# Gráficas de contrataciones (con filtro)
-st.write("#### Contrataciones por Ejecutivo")
-grafica_contrataciones_por_ejecutivo(df_altas_filtrado)
+    st.write("#### Contrataciones por Medio de Reclutamiento")
+    grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado)
 
-st.write("#### Contrataciones por Medio de Reclutamiento")
-grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado)
+    st.write("#### Contrataciones por Mes")
+    grafica_contrataciones_mes(df_altas_filtrado)
+    # grafica_contrataciones_mes_medio_reclutamiento(df_altas_filtrado)
 
-st.write("#### Contrataciones por Mes")
-grafica_contrataciones_mes(df_altas_filtrado)
-# grafica_contrataciones_mes_medio_reclutamiento(df_altas_filtrado)
+    st.divider()
+    st.write('### Contrataciones por Empresa')
+    grafica_contrataciones_por_empresa(df_altas_filtrado)
+    st.divider()
+    
+    with tab3:
+        # Gráficas de vacantes (sin filtro - todo el tiempo)
+        st.write("### Vacantes por Empresa")
+        grafica_vacantes_por_empresa(df_vacantes)
 
-st.divider()
-st.write('### Contrataciones por Empresa')
-grafica_contrataciones_por_empresa(df_altas_filtrado)
+        st.divider()
+        st.write("### Vacantes por Área")
+        grafica_vacantes_por_area(df_vacantes)
 
-# Gráficas de vacantes (sin filtro - todo el tiempo)
-st.divider()
-st.write("### Vacantes por Empresa")
-grafica_vacantes_por_empresa(df_vacantes)
-
-st.divider()
-st.write("### Vacantes por Área")
-grafica_vacantes_por_area(df_vacantes)
-
-st.divider()
-st.write("### Embudo de Vacantes por Fase de Proceso")
-grafica_embudo_fase_proceso(df_vacantes)
+        st.divider()
+        st.write("### Embudo de Vacantes por Fase de Proceso")
+        grafica_embudo_fase_proceso(df_vacantes)
+        st.divider()
