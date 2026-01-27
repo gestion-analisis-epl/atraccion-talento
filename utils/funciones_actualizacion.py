@@ -39,7 +39,7 @@ def actualizar_vacante(conn):
         df = df.sort_values(by="ID", ascending=True)
         
         st.write('### Selecciona una fila para editar')
-        st.info("👆 Haz clic en cualquier fila de la tabla para seleccionarla")
+        st.info(":material/left_click: Haz clic en cualquier fila de la tabla para seleccionarla")
 
         # Dataframe interactivo con selección
         event = st.dataframe(
@@ -62,7 +62,7 @@ def actualizar_vacante(conn):
                 st.write(f"**Editando: {registro['Empresa']} - {registro['Puesto']} - {registro['Plaza']}**")
                 
                 # Sección 1: Información de Solicitud
-                st.subheader("📋 Información de Solicitud")
+                st.subheader(":material/edit_note: Información de Solicitud")
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:
@@ -87,7 +87,7 @@ def actualizar_vacante(conn):
                 st.divider()
                 
                 # Sección 2: Información de la Vacante
-                st.subheader("💼 Información de la Vacante")
+                st.subheader(":material/work: Información de la Vacante")
                 col4, col5, col6 = st.columns(3)
                 
                 with col4:
@@ -112,7 +112,7 @@ def actualizar_vacante(conn):
                 st.divider()
                 
                 # Sección 3: Información de Reclutamiento
-                st.subheader("🎯 Información de Reclutamiento")
+                st.subheader(":material/target: Información de Reclutamiento")
                 col7, col8 = st.columns(2)
                 
                 with col7:
@@ -135,7 +135,7 @@ def actualizar_vacante(conn):
                 col_btn1, col_btn2 = st.columns(2)
                 
                 with col_btn1:
-                    if st.button("💾 Guardar cambios", width="stretch", type="primary"):
+                    if st.button(":material/save: Guardar cambios", width="stretch", type="primary"):
                         try:
                             payload_vac = {
                                 "fecha_solicitud": fecha_solicitud.strftime('%Y-%m-%d') if fecha_solicitud else None,
@@ -157,23 +157,23 @@ def actualizar_vacante(conn):
                                 "fecha_cobertura": fecha_cobertura.strftime('%Y-%m-%d') if fecha_cobertura else None,
                             }
                             conn.table("vacantes").update(payload_vac).eq("id", registro["ID Origen"]).execute()
-                            st.success("✅ Vacante actualizada correctamente")
+                            st.success(":material/check_circle: Vacante actualizada correctamente")
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error al actualizar: {e}")
                 
                 with col_btn2:
-                    if st.button("❌ Cancelar", width="stretch"):
+                    if st.button(":material/cancel: Cancelar", width="stretch"):
                         st.rerun()
             
             # Mostrar botón para editar solo si hay selección
-            st.success(f"✅ Seleccionaste: {df.iloc[fila_seleccionada]['Empresa']} - {df.iloc[fila_seleccionada]['Puesto']} - {df.iloc[fila_seleccionada]['Plaza']}")
+            st.success(f":material/check_circle: Seleccionaste: {df.iloc[fila_seleccionada]['Empresa']} - {df.iloc[fila_seleccionada]['Puesto']} - {df.iloc[fila_seleccionada]['Plaza']}")
             
-            if st.button("✏️ Editar registro seleccionado", type="primary"):
+            if st.button(":material/edit: Editar registro seleccionado", type="primary"):
                 registro_seleccionado = df.iloc[fila_seleccionada]
                 editar_vacante(registro_seleccionado)
         else:
-            st.warning("⚠️ No has seleccionado ningún registro. Haz clic en una fila de la tabla.")
+            st.warning(":material/warning: No has seleccionado ningún registro. Haz clic en una fila de la tabla.")
     
     except Exception as e:
         st.error(f'Error: {e}')
@@ -201,7 +201,7 @@ def actualizar_baja(conn):
         df = df.sort_values(by="ID", ascending=True)
         
         st.write('### Datos encontrados en bajas')
-        st.info("👆 Haz clic en cualquier fila de la tabla para seleccionarla")
+        st.info(":material/left_click: Haz clic en cualquier fila de la tabla para seleccionarla")
         
         # Dataframe interactivo con selección
         event = st.dataframe(
@@ -243,7 +243,7 @@ def actualizar_baja(conn):
             
             col5_btn, col6_btn = st.columns(2)
             with col5_btn:
-                if st.button("💾 Guardar cambios", width="stretch", type="primary"):
+                if st.button(":material/save: Guardar cambios", width="stretch", type="primary"):
                     try:
                         payload_baja = {
                             "fecha_ingreso": fecha_ingreso.strftime('%Y-%m-%d') if fecha_ingreso else None,
@@ -256,25 +256,25 @@ def actualizar_baja(conn):
                             "fecha_registro_baja": fecha_registro_baja.strftime('%Y-%m-%d') if fecha_registro_baja else None,
                         }
                         conn.table("bajas").update(payload_baja).eq("id", registro["ID"]).execute()
-                        st.success("✅ Baja actualizada correctamente")
+                        st.success(":material/check_circle: Baja actualizada correctamente")
                         st.rerun()
                     except Exception as e:
                         st.error(f"Error al guardar: {e}")
                         
             with col6_btn:
-                if st.button("❌ Cancelar", width="stretch"):
+                if st.button(":material/cancel: Cancelar", width="stretch"):
                     st.rerun()
         
         # Verificar si hay una fila seleccionada
         if event.selection.rows:
             fila_seleccionada = event.selection.rows[0]
-            st.success(f"✅ Seleccionaste: {df.iloc[fila_seleccionada]['Empresa']} - {df.iloc[fila_seleccionada]['Puesto']}")
+            st.success(f":material/check_circle: Seleccionaste: {df.iloc[fila_seleccionada]['Empresa']} - {df.iloc[fila_seleccionada]['Puesto']}")
             
-            if st.button("✏️ Editar registro seleccionado", type="primary"):
+            if st.button(":material/edit: Editar registro seleccionado", type="primary"):
                 registro_seleccionado = df.iloc[fila_seleccionada]
                 editar_baja(registro_seleccionado)
         else:
-            st.warning("⚠️ No has seleccionado ningún registro. Haz clic en una fila de la tabla.")
+            st.warning(":material/warning: No has seleccionado ningún registro. Haz clic en una fila de la tabla.")
     
     except Exception as e:
         st.error(f'Error: {e}')

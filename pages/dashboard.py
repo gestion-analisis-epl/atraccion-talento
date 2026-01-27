@@ -260,7 +260,7 @@ if ejecutivo_seleccionado != "Todos":
 # MÉTRICAS PRINCIPALES
 # ======================
 st.write("### :material/search_insights: Métricas principales")
-tab1, tab2, tab3 = st.tabs(["Métricas Principales", "Análisis Visual", "Información de Vacantes"])
+tab1, tab2, tab3 = st.tabs([":material/search_insights: Métricas Principales", ":material/analytics: Análisis Visual", ":material/info: Información de Vacantes"])
 with tab1:
     col1, col2, col3 = st.columns([2, 2, 2])
 
@@ -564,7 +564,7 @@ with tab1:
 # GRAFICAS
 # ======================
 with tab2:
-    st.write("### 📊 Análisis visual")
+    st.write("### :material/analytics: Análisis visual")
 
     # Gráficas de contrataciones (con filtro)
     st.write("#### Contrataciones por Ejecutivo")
