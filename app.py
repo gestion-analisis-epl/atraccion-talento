@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Atraccion de Talento", layout="wide")
+st.set_page_config(page_title="Atraccion de Talento", layout="wide", page_icon=":material/menu:")
 
 # ======================
 # SISTEMA DE AUTENTICACIÓN
