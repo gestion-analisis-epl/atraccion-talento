@@ -289,8 +289,8 @@ with tab1:
     else:
         n_vacantes = 0
         st.error(f'Error al calcular vacantes. No se encontraron datos.')
-    d = ((n_vacantes-18)/18)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
-    col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{d:.2f}%")
+    d = ((n_vacantes-25)/25)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
+    col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{d:.2f}%", delta_color="inverse")
 
     # Requisiciones vs Contrataciones
     total_requisiciones = df_requisiciones_filtrado['vacantes_solicitadas'].astype(int).sum() + df_requisiciones_filtrado['vacantes_contratados'].astype(int).sum()
