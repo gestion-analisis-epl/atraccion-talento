@@ -357,6 +357,9 @@ def contrataciones_area_redes_pagadas(df_altas_filtrado):
                 contrataciones_operativas_redes_pagadas = total_operativas_redes_pagadas['contratados_alta'].sum()
                 col4.metric('Contrataciones Operativas Redes Pagadas', contrataciones_operativas_redes_pagadas)
 
+                df_area = total_operativas.groupby('mes_alta')['contratados_alta'].sum().reset_index()
+                df_bar = total_redes_pagadas.groupby('mes_alta')['contratados_alta'].sum().reset_index()
+
                 fig = px.line(
                     df_area,
                     x='mes_alta',
