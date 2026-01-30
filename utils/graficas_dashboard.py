@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.express as px
 from utils.funciones_dashboard import empresas_map, calcular_dias_cobertura
 from config.opciones import EMPRESAS_NOMBRE_CORTO
-    
+
 def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
     """
     Genera gráfica de barras horizontales con contrataciones por ejecutivo.
@@ -270,8 +270,8 @@ def grafica_contrataciones_mes(df_altas_filtrado):
                     y='contratados_alta',
                     title='Contrataciones por Mes',
                     labels={'mes_alta': 'Mes', 'contratados_alta': 'Contrataciones'},
-                    color_discrete_sequence=px.colors.sequential.dense,
-                    markers=True
+                    color_discrete_sequence=px.colors.qualitative.Set3,
+                    line_shape='spline'
                 )
                 st.plotly_chart(fig)
             else:
@@ -326,3 +326,57 @@ def grafica_embudo_fase_proceso(df_vacantes_filtrado):
             st.info('No se encontraron registros de vacantes.')
     except Exception as e:
         st.error(f'Error al generar la gráfica de embudo por fase de proceso: {e}')
+
+def contrataciones_area_redes_pagadas(df_altas_filtrado):
+    """
+    Genera información referente a contrataciones de redes pagadas,
+    de acuerdo a la función de área.
+
+    Args:
+        df_altas_filtrado: DataFrame filtrado de altas
+    """
+    col1, col2, col3, col4 = st.columns(4)
+    try:
+        if not df_altas_filtrado.empty:
+            df = df_altas_filtrado.copy()
+            df = df[df['contratados_alta'].astype(int) > 0]
+            if not df.empty:
+                meses_es = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'}
+                df['mes_alta'] = df['fecha_alta'].dt.month.map(meses_es)
+                df['mes_alta'] = pd.Categorical(df['mes_alta'], categories=meses_es.values(), ordered=True)
+
+                total_contrataciones = df['contratados_alta'].sum()
+                col1.metric('Contratados Totales', total_contrataciones)
+                total_redes_pagadas = df[df['medio_reclutamiento_alta'] == 'REDES PAGADAS']
+                contrataciones_redes_pagadas = total_redes_pagadas['contratados_alta'].sum()
+                col2.metric('Contratados Redes Pagadas', contrataciones_redes_pagadas)
+                total_operativas = df[df['area_alta'] == 'OPERATIVA']
+                contrataciones_operativas = total_operativas['contratados_alta'].sum()
+                col3.metric('Contrataciones Operativas', contrataciones_operativas)
+                total_operativas_redes_pagadas = total_operativas[total_operativas['medio_reclutamiento_alta'] == 'REDES PAGADAS']
+                contrataciones_operativas_redes_pagadas = total_operativas_redes_pagadas['contratados_alta'].sum()
+                col4.metric('Contrataciones Operativas Redes Pagadas', contrataciones_operativas_redes_pagadas)
+
+                fig = px.line(
+                    df_area,
+                    x='mes_alta',
+                    y='contratados_alta',
+                    title='Contrataciones Totales vs Contrataciones por Redes Pagadas',
+                    labels={'mes_alta': 'Mes', 'contratados_alta': 'Contrataciones'},
+                    color_discrete_sequence=px.colors.qualitative.Pastel2,
+                    line_shape = 'spline'
+                )
+                fig.add_bar(
+                    x=df_bar['mes_alta'],
+                    y=df_bar['contratados_alta'],
+                )
+
+                fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
+
+                st.plotly_chart(fig)
+            else:
+                st.info('No se encontraron contrataciones en el periodo seleccionado.')
+        else:
+            st.info('No se encontraron registros de contrataciones.')
+    except Exception as e:
+        st.error(f'Error al generar la información de contrataciones por área: {e}')

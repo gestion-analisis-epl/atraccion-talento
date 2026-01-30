@@ -13,7 +13,8 @@ from utils.graficas_dashboard import (
     grafica_vacantes_por_empresa,
     grafica_vacantes_por_area,
     grafica_embudo_fase_proceso,
-    grafica_contrataciones_por_empresa
+    grafica_contrataciones_por_empresa,
+    contrataciones_area_redes_pagadas
 )
 
 from utils.auth import require_login
@@ -260,7 +261,7 @@ if ejecutivo_seleccionado != "Todos":
 # MÉTRICAS PRINCIPALES
 # ======================
 st.write("### :material/search_insights: Métricas principales")
-tab1, tab2, tab3 = st.tabs([":material/search_insights: Métricas Principales", ":material/analytics: Análisis Visual", ":material/info: Información de Vacantes"])
+tab1, tab2, tab3, tab4 = st.tabs([":material/search_insights: Métricas Principales", ":material/analytics: Análisis Visual", ":material/info: Información de Vacantes", ":material/article_person: Redes Pagadas"])
 with tab1:
     col1, col2, col3 = st.columns([2, 2, 2])
 
@@ -324,7 +325,7 @@ with tab1:
     # Vacantes Abiertas
     try:
         if not df_vacantes.empty:
-            df_cobertura =df_vacantes[(df_vacantes['vacantes_solicitadas'] > 0) & (df_vacantes['fecha_autorizacion'].notna())].copy()
+            df_cobertura = df_vacantes[(df_vacantes['vacantes_solicitadas'] > 0) & (df_vacantes['fecha_autorizacion'].notna())].copy()
             if not df_cobertura.empty:
                 df_cobertura['dias_calculados'] = df_cobertura.apply(calcular_dias_cobertura, axis=1)
                 promedio_cobertura = df_cobertura['dias_calculados'].dropna().mean()
@@ -442,7 +443,9 @@ with tab1:
                 promedio_cobertura = df_administrativas.loc[df_administrativas['dias_calculados'] > 0, 'dias_calculados'].mean()
                 
                 if pd.notna(promedio_cobertura) and promedio_cobertura > 0:
-                    ponderacion = f'{45 / promedio_cobertura*100:.2f}%'
+                    valor = 45 / promedio_cobertura*100
+                    ponderacion = f'{valor:.2f}%'
+                    delta_color = "inverse" if valor < 100 else "normal"
                 else:
                     ponderacion = None
 
@@ -451,6 +454,7 @@ with tab1:
                     value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
                     border=True,
                     delta=ponderacion,
+                    delta_color = delta_color
                 )
             else:
                 col8.metric(label='Promedio en Administrativas', value="0", border=True)
@@ -476,7 +480,10 @@ with tab1:
                 promedio_cobertura = df_operativas.loc[df_operativas['dias_calculados'] > 0, 'dias_calculados'].mean()
                 
                 if pd.notna(promedio_cobertura) and promedio_cobertura > 0:
-                    ponderacion = f'{15 / promedio_cobertura*100:.2f}%'
+                    valor = 15 / promedio_cobertura*100
+                    ponderacion = f'{valor:.2f}%'
+                    delta_color = "inverse" if valor < 100 else "normal"
+
                 else:
                     ponderacion = None
                 
@@ -485,6 +492,7 @@ with tab1:
                     value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
                     border=True,
                     delta=ponderacion,
+                    delta_color = delta_color
                 )
             else:
                 col9.metric(label='Promedio en Operativas', value="0", border=True)
@@ -595,3 +603,9 @@ with tab2:
         st.write("### Embudo de Vacantes por Fase de Proceso")
         grafica_embudo_fase_proceso(df_vacantes)
         st.divider()
+    
+    with tab4:
+        st.write("### Contrataciones por Redes Pagadas")
+        contrataciones_area_redes_pagadas(df_altas_filtrado)
+
+        
