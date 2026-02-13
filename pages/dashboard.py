@@ -419,7 +419,6 @@ with tab1:
                 value=f"{round(promedio_contratacion)}" if pd.notna(promedio_contratacion) else "0",
                 border=True,
                 )
-                
             else:
                 col7.metric(label='Promedio en Vacantes finalizadas', value="0", border=True)
         else:
