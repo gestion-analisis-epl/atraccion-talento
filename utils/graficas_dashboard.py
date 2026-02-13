@@ -37,9 +37,9 @@ def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
                     labels={'contratados_alta': 'Contrataciones', 'primer_nombre': 'Ejecutivo'},
                 )
                 
-                fig.update_traces(marker=dict(cornerradius="50%"), base=2)
+                #fig.update_traces(marker=dict(cornerradius="50%"), base=2)
                 
-                fig.update_xaxes(range=[-2, resumen['contratados_alta'].max() * 1.1])
+                #fig.update_xaxes(range=[-2, resumen['contratados_alta'].max() * 1.1])
                 
                 fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
                 st.plotly_chart(fig)
@@ -81,9 +81,9 @@ def grafica_contrataciones_por_empresa(df_altas_filtrado):
                     title='Contrataciones realizadas por Empresa',
                 )
                 
-                fig.update_traces(marker=dict(cornerradius="50%"), base=2)
+                #fig.update_traces(marker=dict(cornerradius="50%"), base=2)
                 
-                fig.update_xaxes(range=[-2, resumen['Total'].max() * 1.1])
+                #fig.update_xaxes(range=[-2, resumen['Total'].max() * 1.1])
                 
                 fig.update_layout()
                 st.plotly_chart(fig)
@@ -126,9 +126,9 @@ def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
                     labels={'contratados_alta': 'Contrataciones', 'medio_reclutamiento_alta': 'Medio de Reclutamiento'}
                 )
                 
-                fig.update_traces(marker=dict(cornerradius="50%"), base=2)
+                #fig.update_traces(marker=dict(cornerradius="50%"), base=2)
                 
-                fig.update_xaxes(range=[-2, resumen['contratados_alta'].max() * 1.1])
+                #fig.update_xaxes(range=[-2, resumen['contratados_alta'].max() * 1.1])
                 
                 fig.update_layout(yaxis=dict(tickmode="linear"), showlegend=False, font=dict(weight='bold', size=13))
                 st.plotly_chart(fig)
@@ -388,11 +388,11 @@ def contrataciones_area_redes_pagadas(df_altas_filtrado):
                     y=df_bar['contratados_alta'],
                 )
                 
-                max_valor = max(df_area['contratados_alta'].max(), df_bar['contratados_alta'].max()) if not df_bar.empty else df_area['contratados_alta'].max()
+                #max_valor = max(df_area['contratados_alta'].max(), df_bar['contratados_alta'].max()) if not df_bar.empty else df_area['contratados_alta'].max()
                 
-                fig.update_traces(marker=dict(cornerradius="50%", color='lightgreen'), base=2, width=0.4, selector=dict(type='bar'))
+                #fig.update_traces(marker=dict(cornerradius="50%", color='lightgreen'), base=2, width=0.4, selector=dict(type='bar'))
                 
-                fig.update_yaxes(range=[-2, max_valor * 1.1])
+                #fig.update_yaxes(range=[-2, max_valor * 1.1])
 
                 fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
 
