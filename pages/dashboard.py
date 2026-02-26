@@ -551,8 +551,8 @@ with tab1:
                 "responsable_alta": "Ejecutivo de reclutamiento",
                 'contratados_alta': 'Contratados',
             })
-            confidencial = df['confidencial'] != 'SI'
-            st.dataframe(df[confidencial],
+            df.loc[df['confidencial'] == 'SI', 'puesto_alta'] = 'VACANTE'
+            st.dataframe(df,
                         column_config={
                             "id": None,
                             "id_registro": None,

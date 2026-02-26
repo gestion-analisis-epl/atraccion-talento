@@ -159,7 +159,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                 df['dias_cobertura_calculados'] = df.apply(calcular_dias_cobertura, axis=1)
                 
                 # Mostrar detalle de vacantes con nombre de la vacante y empresa
-                df_detalle = df[['id_sistema', 'empresa_vacante', 'puesto_vacante', 'plaza_vacante', 'vacantes_solicitadas', 'dias_cobertura_calculados']].copy()
+                df_detalle = df[['id_sistema', 'empresa_vacante', 'puesto_vacante', 'plaza_vacante', 'vacantes_solicitadas', 'dias_cobertura_calculados', 'confidencial']].copy()
                 df_detalle = df_detalle.rename(columns={
                     "id_sistema": "ID",
                     "empresa_vacante": "Empresa", 
@@ -179,9 +179,10 @@ def grafica_vacantes_por_empresa(df_vacantes):
 
                 st.write('### Detalle de Vacantes por Empresa')
                 df_detalle = df_detalle.sort_values(by='Días de cobertura', ascending=False)
-                confidencial = df['confidencial'] != 'SI'
-                df_detalle = df_detalle[confidencial]
-                st.dataframe(df_detalle, hide_index=True)
+                df_detalle.loc[df_detalle['confidencial'] == 'SI', 'Puesto'] = 'VACANTE'
+                st.dataframe(df_detalle, hide_index=True, column_config={
+                    'confidencial': None
+                })
 
                 # Resumen por empresa
                 resumen = df_grafico.groupby('Empresa')['Vacantes'].sum().reset_index()
