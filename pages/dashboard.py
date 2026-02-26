@@ -550,15 +550,16 @@ with tab1:
                 "medio_reclutamiento_alta": "Medio de reclutamiento",
                 "responsable_alta": "Ejecutivo de reclutamiento",
                 'contratados_alta': 'Contratados',
+                'confidencial': 'Confidencial',
             })
-            df.loc[df['confidencial'] == 'SI', 'puesto_alta'] = 'VACANTE'
+            df.loc[df['Confidencial'] == 'SI', 'Puesto'] = 'VACANTE'
             st.dataframe(df,
                         column_config={
                             "id": None,
                             "id_registro": None,
                             "fecha_alta": None,
                             "contratados_alta": None, 
-                            'confidencial': None,
+                            'Confidencial': None,
                         }, hide_index=True, width="stretch")
         else:
             st.write("No hay datos disponibles para mostrar.")
