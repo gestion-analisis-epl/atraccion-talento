@@ -543,6 +543,7 @@ with tab1:
     try:
         if not df_altas_filtrado.empty:
             df = df_altas_filtrado.copy()
+            df['fecha_alta'] = df['fecha_alta'].dt.date
             df = df.rename(columns={
                 'empresa_alta': 'Empresa',
                 "puesto_alta": "Puesto",
