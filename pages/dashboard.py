@@ -548,6 +548,7 @@ with tab1:
                 "puesto_alta": "Puesto",
                 "plaza_alta": "Plaza",
                 "area_alta": "Área",
+                'fecha_alta': 'Fecha de contratación',
                 "medio_reclutamiento_alta": "Medio de reclutamiento",
                 "responsable_alta": "Ejecutivo de reclutamiento",
                 'contratados_alta': 'Contratados',
@@ -558,7 +559,6 @@ with tab1:
                         column_config={
                             "id": None,
                             "id_registro": None,
-                            "fecha_alta": None,
                             "contratados_alta": None, 
                             'Confidencial': None,
                         }, hide_index=True, width="stretch")
