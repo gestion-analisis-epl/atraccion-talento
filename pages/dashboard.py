@@ -14,10 +14,10 @@ from utils.graficas_dashboard import (
     grafica_vacantes_por_area,
     grafica_embudo_fase_proceso,
     grafica_contrataciones_por_empresa,
-    contrataciones_area_redes_pagadas
+    contrataciones_area_redes_pagadas,
 )
-
 from utils.auth import require_login
+from styles.styles import estilo_metricas
 
 # Requerir autenticación antes de mostrar cualquier contenido
 require_login()
@@ -26,21 +26,41 @@ conn = st.connection("supabase", type=SupabaseConnection)
 
 # ======================
 # FILTROS
-# ======================
+# =====================
+
+data_actualizacion = (conn.table("registros_rh").select("ultima_actualizacion").order("ultima_actualizacion", desc=True).limit(1).execute())
+ultima_actualizacion = data_actualizacion.data[0]['ultima_actualizacion']
+
+
 st.write("### :material/chart_data: Dashboard de Reclutamiento")
+st.write(f'Última actualización: {datetime.strptime(ultima_actualizacion, '%Y-%m-%d').date()}')
 st.markdown("---")
 
+css = estilo_metricas()
+st.markdown(css, unsafe_allow_html=True)
+
 # Obtener datos completos
-conteo_vacantes = conn.table("vacantes").select("*").execute()
+conteo_vacantes = (conn.table("vacantes")
+.select("""
+        id, id_registro, fecha_solicitud, tipo_solicitud, estatus_solicitud, fase_proceso,
+        fecha_avance, fecha_autorizacion, puesto_vacante, plaza_vacante, empresa_vacante,
+        funcion_area_vacante, vacantes_solicitadas, vacantes_contratados, responsable_vacante,
+        comentarios_vacante, tipo_reclutamiento_vacante, medio_reclutamiento_vacante, fecha_cobertura,
+        id_sistema, confidencial
+        """).execute())
 todos_registros_vacantes = conteo_vacantes.data
 
-data_altas = conn.table("altas").select("*").execute()
+data_altas = (conn.table("altas")
+              .select("""
+                      id, id_registro, fecha_alta, empresa_alta, puesto_alta, plaza_alta, area_alta,
+                      contratados_alta, medio_reclutamiento_alta, responsable_alta, confidencial
+                      """).execute())
 todos_registros_altas = data_altas.data
 
-data_bajas = conn.table("bajas").select("*").execute()
+data_bajas = (conn.table("bajas").select("*").execute())
 todos_registros_bajas = data_bajas.data
 
-data_expedientes = conn.table("expedientes").select("*").execute()
+data_expedientes = (conn.table("expedientes").select("*").execute())
 todos_registros_expedientes = data_expedientes.data
 
 # Preparar DataFrames
@@ -290,16 +310,19 @@ with tab1:
     else:
         n_vacantes = 0
         st.error(f'Error al calcular vacantes. No se encontraron datos.')
-    d = ((n_vacantes-25)/25)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
+    d = ((n_vacantes-18)/18)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
     col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{d:.2f}%", delta_color="inverse")
 
     # Requisiciones vs Contrataciones
     total_requisiciones = df_requisiciones_filtrado['vacantes_solicitadas'].astype(int).sum() + df_requisiciones_filtrado['vacantes_contratados'].astype(int).sum()
+    total_no_requisitadas = (df_requisiciones_filtrado['fase_proceso'] == "SIN SOLICITUD DE REQUISICION").sum()
     if not df_requisiciones_filtrado.empty:
         with col1:
             st.metric(label="Requisiciones Totales", value=total_requisiciones)
-    if not df_altas_filtrado.empty and not df_vacantes.empty:
         with col2:
+            st.metric(label="Vacantes no requisitadas", value=total_no_requisitadas)
+    if not df_altas_filtrado.empty and not df_vacantes.empty:
+        with col3:
             if total_requisiciones > 0:
                 porcentaje = round((n_contratados / total_requisiciones)*100, 2) 
                 st.metric(label="Requisiciones VS Contrataciones", value=f'{porcentaje}%')
@@ -325,7 +348,11 @@ with tab1:
     # Vacantes Abiertas
     try:
         if not df_vacantes.empty:
-            df_cobertura = df_vacantes[(df_vacantes['vacantes_solicitadas'] > 0) & (df_vacantes['fecha_autorizacion'].notna())].copy()
+            df_cobertura = df_vacantes[
+                (df_vacantes['vacantes_solicitadas'] > 0) &
+                (df_vacantes['fecha_autorizacion'].notna()) &
+                (df_vacantes['fecha_autorizacion'] != pd.Timestamp('1900-01-01'))
+            ]
             if not df_cobertura.empty:
                 df_cobertura['dias_calculados'] = df_cobertura.apply(calcular_dias_cobertura, axis=1)
                 promedio_cobertura = df_cobertura['dias_calculados'].dropna().mean()
@@ -522,7 +549,7 @@ with tab1:
         with col11: st.info(f'No hay expedientes registrados en el período seleccionado.')
 
     if expedientes_totales > 0:
-        col11.metric(label='Expedientes Completos', value=expedientes_completos, delta=f"{expedientes_completos/expedientes_totales*100:.2f}%")
+        col11.metric(label='Expedientes Completos', value=expedientes_completos, delta=f"{expedientes_completos/expedientes_totales*100:.2f}%", delta_color="inverse")
     else:
         col11.metric(label='Expedientes Completos', value=expedientes_completos)
 
@@ -533,7 +560,7 @@ with tab1:
         with col12: st.info(f'No hay expedientes registrados en el período seleccionado.')
 
     if expedientes_totales > 0:
-        col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes, delta=f"{expedientes_faltantes/expedientes_totales*100:.2f}%")
+        col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes, delta=f"{expedientes_faltantes/expedientes_totales*100:.2f}%", delta_color="inverse")
     else:
         col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes)
 
@@ -543,11 +570,13 @@ with tab1:
     try:
         if not df_altas_filtrado.empty:
             df = df_altas_filtrado.copy()
+            df['fecha_alta'] = df['fecha_alta'].dt.date
             df = df.rename(columns={
                 'empresa_alta': 'Empresa',
                 "puesto_alta": "Puesto",
                 "plaza_alta": "Plaza",
                 "area_alta": "Área",
+                'fecha_alta': 'Fecha de contratación',
                 "medio_reclutamiento_alta": "Medio de reclutamiento",
                 "responsable_alta": "Ejecutivo de reclutamiento",
                 'contratados_alta': 'Contratados',
@@ -558,7 +587,6 @@ with tab1:
                         column_config={
                             "id": None,
                             "id_registro": None,
-                            "fecha_alta": None,
                             "contratados_alta": None, 
                             'Confidencial': None,
                         }, hide_index=True, width="stretch")
@@ -590,7 +618,7 @@ with tab2:
     st.write('### Contrataciones por Empresa')
     grafica_contrataciones_por_empresa(df_altas_filtrado)
     st.divider()
-    
+
     with tab3:
         # Gráficas de vacantes (sin filtro - todo el tiempo)
         st.write("### Vacantes por Empresa")
