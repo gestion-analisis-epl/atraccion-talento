@@ -53,6 +53,8 @@ def calcular_dias_cobertura(row):
         # Determinar la fecha de inicio (priorizar fecha_autorización sobre fecha_solicitud)
         if pd.notna(row['fecha_autorizacion']):
             fecha_inicio = pd.to_datetime(row['fecha_autorizacion'])
+            if fecha_inicio == pd.Timestamp('1900-01-01'):
+                return 1
             if fecha_inicio.tzinfo is None:
                 fecha_inicio = MEXICO_TZ.localize(fecha_inicio)
         elif pd.notna(row['fecha_solicitud']):
