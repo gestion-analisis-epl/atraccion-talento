@@ -1,5 +1,6 @@
 # Framework principal
 streamlit>=1.51.0
+streamlit-cookies-controller>=0.0.4
 # Manejo de datos
 pandas>=2.0.0
 # Visualización
