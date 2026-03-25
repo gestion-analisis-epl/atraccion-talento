@@ -1,17 +1,34 @@
+import warnings
+import logging
+
+warnings.filterwarnings("ignore", message=".*st.cache.*", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*st.cache.*", category=UserWarning)
+class _FiltroStCache(logging.Filter):
+    def filter(self, record):
+        return "st.cache" not in record.getMessage()
+
+for _logger_name in ("streamlit", "streamlit.deprecation", "streamlit.logger", ""):
+    logging.getLogger(_logger_name).addFilter(_FiltroStCache())
+
 import streamlit as st
 from datetime import datetime, timedelta, timezone
-from streamlit_cookies_controller import CookieController
+from streamlit_cookies_manager import EncryptedCookieManager
 
 st.set_page_config(page_title="Atraccion de Talento", layout="wide", page_icon=":material/menu:")
 
 SESSION_DAYS = 15
 
-cookies = CookieController(key="atraccion_talento_cookie_controller")
+cookies = EncryptedCookieManager(
+    prefix="atraccion_talento_",
+    password=st.secrets.get("cookie_password", "cambia-esta-clave-en-secrets"),
+)
+
+if not cookies.ready():
+    st.stop()
 
 # ======================
 # SISTEMA DE AUTENTICACIÓN
 # ======================
-# Obtener credenciales 
 def obtener_usuarios():
     """Obtiene los usuarios y contraseñas desde secrets.toml"""
     try:
@@ -29,12 +46,16 @@ def verificar_login(usuario, password):
 def _crear_sesion_persistente(usuario):
     """Guarda sesión persistente en cookie por SESSION_DAYS días."""
     expira = datetime.now(timezone.utc) + timedelta(days=SESSION_DAYS)
-    cookies.set("auth_user", usuario, expires=expira)
-    cookies.set("auth_exp", expira.isoformat(), expires=expira)
+    cookies["auth_user"] = usuario
+    cookies["auth_exp"] = expira.isoformat()
+    cookies.save()
 
 
 def _restaurar_sesion_desde_cookie():
     """Restaura sesión desde cookie si no ha expirado."""
+    if st.session_state.get("logout_solicitado"):
+        return False
+
     usuario = cookies.get("auth_user")
     expira_raw = cookies.get("auth_exp")
 
@@ -62,8 +83,11 @@ def _restaurar_sesion_desde_cookie():
 
 def _eliminar_sesion_persistente():
     """Elimina cookies de sesión persistente."""
-    cookies.remove("auth_user")
-    cookies.remove("auth_exp")
+    if "auth_user" in cookies:
+        del cookies["auth_user"]
+    if "auth_exp" in cookies:
+        del cookies["auth_exp"]
+    cookies.save()
 
 def mostrar_login():
     """Muestra la pantalla de login"""
@@ -83,6 +107,7 @@ def mostrar_login():
                 if verificar_login(usuario, password):
                     st.session_state["autenticado"] = True
                     st.session_state["usuario"] = usuario
+                    st.session_state["logout_solicitado"] = False
                     _crear_sesion_persistente(usuario)
                     st.rerun()
                 else:
@@ -100,16 +125,15 @@ def mostrar_app():
         st.markdown('<h2 style="text-align: center">Especialistas Profesionales de León</h2>', unsafe_allow_html=True)
         st.sidebar.image("img/grupo-epl.png")
         
-        # Mostrar usuario logueado y botón de cerrar sesión
         st.markdown("---")
         st.write(f":material/account_circle: Usuario: **{st.session_state.get('usuario', 'N/A')}**")
         if st.button(":material/logout: Cerrar sesión", use_container_width=True):
+            st.session_state["logout_solicitado"] = True
             st.session_state["autenticado"] = False
             st.session_state["usuario"] = None
             _eliminar_sesion_persistente()
             st.rerun()
     
-    # -- SETUP --
     form_page = st.Page(
         page = "pages/form.py",
         title = "Formulario de Atracción de Talento",
@@ -139,17 +163,18 @@ def mostrar_app():
 # ======================
 # CONTROL DE ACCESO
 # ======================
-# Inicializar estado de autenticación
 if "autenticado" not in st.session_state:
     st.session_state["autenticado"] = False
 
 if "usuario" not in st.session_state:
     st.session_state["usuario"] = None
 
+if "logout_solicitado" not in st.session_state:
+    st.session_state["logout_solicitado"] = False
+
 if not st.session_state["autenticado"]:
     _restaurar_sesion_desde_cookie()
 
-# Mostrar login o app según el estado
 if not st.session_state["autenticado"]:
     mostrar_login()
 else:
