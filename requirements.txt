@@ -4,6 +4,7 @@ streamlit>=1.51.0
 pandas>=2.0.0
 # Visualización
 plotly>=5.17.0
+streamlit-echarts >= 0.6.0
 # Conexión a Supabase
 st-supabase-connection==2.1.1
 # Leer archivo Excel

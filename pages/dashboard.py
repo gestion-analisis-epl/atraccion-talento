@@ -636,5 +636,3 @@ with tab2:
     with tab4:
         st.write("### Contrataciones por Redes Pagadas")
         contrataciones_area_redes_pagadas(df_altas_filtrado)
-
-        

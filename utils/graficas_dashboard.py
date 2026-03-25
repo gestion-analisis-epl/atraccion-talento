@@ -8,6 +8,7 @@ import pandas as pd
 import plotly.express as px
 from utils.funciones_dashboard import empresas_map, calcular_dias_cobertura
 from config.opciones import EMPRESAS_NOMBRE_CORTO
+from streamlit_echarts import st_echarts
 
 def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
     """
@@ -36,10 +37,6 @@ def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
                     title='Contrataciones realizadas por Ejecutivo',
                     labels={'contratados_alta': 'Contrataciones', 'primer_nombre': 'Ejecutivo'},
                 )
-                
-                #fig.update_traces(marker=dict(cornerradius="50%"), base=2)
-                
-                #fig.update_xaxes(range=[-2, resumen['contratados_alta'].max() * 1.1])
                 
                 fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
                 st.plotly_chart(fig)
@@ -81,10 +78,6 @@ def grafica_contrataciones_por_empresa(df_altas_filtrado):
                     title='Contrataciones realizadas por Empresa',
                 )
                 
-                #fig.update_traces(marker=dict(cornerradius="50%"), base=2)
-                
-                #fig.update_xaxes(range=[-2, resumen['Total'].max() * 1.1])
-                
                 fig.update_layout()
                 st.plotly_chart(fig)
             else:
@@ -125,11 +118,6 @@ def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
                     title='Contrataciones por Medio de Reclutamiento',
                     labels={'contratados_alta': 'Contrataciones', 'medio_reclutamiento_alta': 'Medio de Reclutamiento'}
                 )
-                
-                #fig.update_traces(marker=dict(cornerradius="50%"), base=2)
-                
-                #fig.update_xaxes(range=[-2, resumen['contratados_alta'].max() * 1.1])
-                
                 fig.update_layout(yaxis=dict(tickmode="linear"), showlegend=False, font=dict(weight='bold', size=13))
                 st.plotly_chart(fig)
             else:
@@ -138,6 +126,7 @@ def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
             st.info('No se encontró información de contrataciones.')
     except Exception as e:
         st.error(f'Error al generar la gráfica de contrataciones por medio: {e}')
+
 
 
 def grafica_vacantes_por_empresa(df_vacantes):
@@ -194,17 +183,35 @@ def grafica_vacantes_por_empresa(df_vacantes):
                     with col1:
                         st.dataframe(resumen, hide_index=True)
 
-                    # Gráfico de pie
-                    fig = px.pie(
-                        resumen, 
-                        values='Vacantes', 
-                        names='Empresa', 
-                        color='Empresa',
-                        color_discrete_sequence=px.colors.sequential.Sunset
-                    )
-                    fig.update_layout(showlegend=True, font=dict(weight='bold', size=13))
+                    # Gráfico de barras
+                    options = {
+                        "tooltip": {"trigger": "item"},
+                        "legend": {"top": "5%", "left": "center"},
+                        "toolbox": {
+                            "feature": {
+                                "dataView": {"readOnly": True},
+                                "saveAsImage": {},
+                            }
+                        },
+                        "xAxis": {
+                            "type": "category",
+                            "data": [str(n) for n in resumen['Empresa']],
+                            "axisLabel": {"rotate": 45, "overflow": "truncate"}
+                        },
+                        "yAxis": {
+                            "type": "value",
+                        },
+                        "series": [
+                            {
+                                "name": "Vacantes",
+                                "type": "bar",
+                                "label": {"show": True, "position": "inside", "fontWeight": "bold"},
+                                "data": [int(v) for v in resumen['Vacantes']]
+                            }
+                        ]
+                    }
                     with col2:
-                        st.plotly_chart(fig)
+                        st_echarts(options)
             else:
                 st.info('No se encontraron vacantes.')
         else:
@@ -233,19 +240,36 @@ def grafica_vacantes_por_area(df_vacantes):
                 resumen = resumen.rename(columns=columns_name) 
                 resumen = resumen.sort_values(by='Vacantes', ascending=False)
                 st.write('### Vacantes por Función de Área')
-                st.dataframe(resumen, hide_index=True)
-                fig = px.bar(
-                    resumen, 
-                    x='Vacantes', 
-                    y='Función de área',
-                    text='Vacantes',
-                    orientation='h',
-                    color='Función de área',
-                    color_discrete_sequence=px.colors.sequential.Emrld,
-                    title='Distribución de Vacantes por Función de Área'
-                )
-                fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
-                st.plotly_chart(fig)
+                col1, col2 = st.columns([2, 2])
+                with col1:
+                    st.dataframe(resumen, hide_index=True)
+                options = {
+                    "tooltip": {"trigger": "item"},
+                    "legend": {"top": "1%", "left": "center"},
+                    "toolbox": {
+                        "feature": {
+                            "dataView": {"readOnly": True},
+                            "saveAsImage": {},
+                        }
+                    },
+                    "series": [
+                        {
+                            "name": "Función de área",
+                            "type": "pie",
+                            "radius": ["40%", "80%"],
+                            "avoidLabelOverlap": True,
+                            "itemStyle": {"borderRadius": 5, "borderColor": "#2a2a2a", "borderWidth": 2},
+                            "label": {"show": False, "fontWeight": "bold", "position": "center"},
+                            "emphasis": {"label": {"show": True, "fontWeight": "bold", "fontSize": 20}},
+                            "data": [
+                                {"value": int(v), "name": str(n)}
+                                for v, n in zip(resumen['Vacantes'], resumen['Función de área'])
+                            ]
+                        }
+                    ]
+                }
+                with col2:
+                    st_echarts(options, width="500px")
             else:
                 st.info('No se encontraron vacantes.')
         else:
@@ -328,10 +352,10 @@ def grafica_embudo_fase_proceso(df_vacantes_filtrado):
                     conteo,
                     x='cantidad',
                     y='fase_proceso',
-                    title='Embudo de Vacantes por Fase de Proceso',
-                    labels={'cantidad': 'Cantidad', 'fase_proceso': 'Fase del Proceso'},
+                    title='Embudo por Fase de Proceso',
+                    labels={'cantidad': 'Total', 'fase_proceso': 'Fase del Proceso'},
                     color='fase_proceso',
-                    color_discrete_sequence=px.colors.sequential.Plasma
+                    color_discrete_sequence=px.colors.qualitative.Pastel2,
                 )
                 fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
                 st.plotly_chart(fig)
@@ -374,30 +398,47 @@ def contrataciones_area_redes_pagadas(df_altas_filtrado):
 
                 df_area = total_operativas.groupby('mes_alta')['contratados_alta'].sum().reset_index()
                 df_bar = total_redes_pagadas.groupby('mes_alta')['contratados_alta'].sum().reset_index()
-
-                fig = px.line(
-                    df_area,
-                    x='mes_alta',
-                    y='contratados_alta',
-                    title='Contrataciones Totales vs Contrataciones por Redes Pagadas',
-                    labels={'mes_alta': 'Mes', 'contratados_alta': 'Contrataciones'},
-                    color_discrete_sequence=px.colors.qualitative.Pastel2,
-                    line_shape = 'spline'
-                )
-                fig.add_bar(
-                    x=df_bar['mes_alta'],
-                    y=df_bar['contratados_alta'],
-                )
                 
-                #max_valor = max(df_area['contratados_alta'].max(), df_bar['contratados_alta'].max()) if not df_bar.empty else df_area['contratados_alta'].max()
+                options = {
+                    "tooltip": {"trigger": "axis"},
+                    "toolbox": {
+                        "feature": {
+                            "dataView": {"readOnly": True},
+                            "magicType": {"type": ["line", "bar"]},
+                            "restore": {},
+                            "saveAsImage": {}
+                        }
+                    },
+                    "xAxis": [
+                        {
+                            "type": "category",
+                            "data": [str(n) for n in df_bar['mes_alta']],
+                            "axisPointer": {"type": "shadow"},
+                            "axisLabel": {"rotate": 45, "overflow": "truncate"}
+                        }
+                    ],
+                    "yAxis": [
+                        {
+                            "type": "value",
+                        }
+                    ],
+                    "series": [
+                        {
+                            "name": "Contrataciones Totales",
+                            "type": "line",
+                            "data": [int(v) for v in df_area['contratados_alta']],
+                            
+                        },
+                        {
+                            "name": "Contrataciones Redes Pagadas",
+                            "type": "bar",
+                            "data": [int(v) for v in df_bar['contratados_alta']],
+                        }
+                    ]
+                }
                 
-                #fig.update_traces(marker=dict(cornerradius="50%", color='lightgreen'), base=2, width=0.4, selector=dict(type='bar'))
-                
-                #fig.update_yaxes(range=[-2, max_valor * 1.1])
-
-                fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
-
-                st.plotly_chart(fig)
+                st_echarts(options, height="500px")
+               
             else:
                 st.info('No se encontraron contrataciones en el periodo seleccionado.')
         else:

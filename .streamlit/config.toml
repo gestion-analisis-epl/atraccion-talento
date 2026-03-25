@@ -2,54 +2,135 @@
 enableStaticServing = true
 
 [[theme.fontFaces]]
-url = "app/static/Google_Sans/GoogleSans-Regular.ttf"
-family = "Google Sans"
-weight = 100
+family = "Poppins"
+url = "app/static/Poppins-Thin.ttf"
+style = "normal"
+weight = "100"
 
 [[theme.fontFaces]]
-url = "app/static/Google_Sans/GoogleSans-Regular.ttf"
-family = "Google Sans"
-weight = 300
+family = "Poppins"
+url = "app/static/Poppins-ExtraLight.ttf"
+style = "normal"
+weight = "200"
 
 [[theme.fontFaces]]
-url = "app/static/Google_Sans/GoogleSans-Regular.ttf"
-family = "Google Sans"
-weight = 400
+family = "Poppins"
+url = "app/static/Poppins-Light.ttf"
+style = "normal"
+weight = "300"
 
 [[theme.fontFaces]]
-url = "app/static/Google_Sans/GoogleSans-Medium.ttf"
-family = "Google Sans"
-weight = 500
+family = "Poppins"
+url = "app/static/Poppins-Regular.ttf"
+style = "normal"
+weight = "400"
 
 [[theme.fontFaces]]
-url = "app/static/Google_Sans/GoogleSans-SemiBold.ttf"
-family = "Google Sans"
-weight = 700
+family = "Poppins"
+url = "app/static/Poppins-Medium.ttf"
+style = "normal"
+weight = "500"
 
 [[theme.fontFaces]]
-url = "app/static/Google_Sans/GoogleSans-Bold.ttf"
-family = "Google Sans"
-weight = 900
+family = "Poppins"
+url = "app/static/Poppins-SemiBold.ttf"
+style = "normal"
+weight = "600"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-Bold.ttf"
+style = "normal"
+weight = "700"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-ExtraBold.ttf"
+style = "normal"
+weight = "800"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-Black.ttf"
+style = "normal"
+weight = "900"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-ThinItalic.ttf"
+style = "italic"
+weight = "100"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-ExtraLightItalic.ttf"
+style = "italic"
+weight = "200"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-LightItalic.ttf"
+style = "italic"
+weight = "300"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-Italic.ttf"
+style = "italic"
+weight = "400"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-MediumItalic.ttf"
+style = "italic"
+weight = "500"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-SemiBoldItalic.ttf"
+style = "italic"
+weight = "600"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-BoldItalic.ttf"
+style = "italic"
+weight = "700"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-ExtraBoldItalic.ttf"
+style = "italic"
+weight = "800"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/Poppins-BlackItalic.ttf"
+style = "italic"
+weight = "900"
 
 [theme]
 base = "dark"
-primaryColor = "#3A506B"
-backgroundColor = "#0B132B"
-secondaryBackgroundColor = "#1C2541"
-textColor = "#FFFFFF"
-linkColor = "#5BC0BE"
-linkUnderline = false
-
-font = "Google Sans, sans-serif"
+primaryColor = "#1ed760"
+backgroundColor = "#2a2a2a"
+secondaryBackgroundColor = "#121212"
+codeBackgroundColor = "#121212"
+textColor = "#ffffff"
+linkColor = "#1ed760"
+borderColor = "#7c7c7c"
+showWidgetBorder = true
+baseRadius = "0.3rem"
+buttonRadius = "full"
+font = "Poppins, sans-serif"
 baseFontSize = 16
 baseFontWeight = 300
-headingFont = "Google Sans, sans-serif"
+headingFont = "Poppins, sans-serif"
 headingFontSizes = ["2.5rem", "2rem", "1,75rem"]
 headingFontWeights = [700, 500, 400]
-# codeFont = "Fira Code"
-# codeFontSize = "0.8rem"
-baseRadius = "small"
-buttonRadius = "large"
-# dataframeBorderColor
-# dataframeBorderColor
-dataframeHeaderBackgroundColor = "#1C2541"
+chartCategoricalColors = ["#4ea397", "#22c3aa", "#7bd9a5", "#d0648a", "#f58db2", "#f2b3c9", "#e5cf0d", "#97b552"]
+
+[theme.sidebar]
+backgroundColor = "#121212"
+secondaryBackgroundColor = "#000000"
+codeBackgroundColor = "#2a2a2a"
+borderColor = "#696969"

@@ -6,7 +6,7 @@ def estilo_metricas():
         flex-direction: column !important;  /* Apilar elementos verticalmente */
         align-items: center !important;     /* Centrar horizontalmente */
         justify-content: center !important; /* Centrar verticalmente */
-        background-color: rgba(0, 20, 99, 0.25); !important;
+        background-color: rgba(255, 255, 255, 0.04); !important;
         border: 1px solid rgba(255,255,255,0.35) !important;
         box-shadow: 0 4px 30px rgb(0, 0, 0, 0.1);
         backdrop-filter: blur(10px);
