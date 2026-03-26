@@ -1,4 +1,5 @@
 import streamlit as st
+import bcrypt
 from datetime import datetime, timedelta, timezone
 from streamlit_cookies_manager import EncryptedCookieManager
 
@@ -27,9 +28,15 @@ def obtener_usuarios():
         return {}
 
 def verificar_login(usuario, password):
-    """Verifica si las credenciales son correctas"""
+    """Verifica credenciales comparando con el hash bcrypt almacenado en secrets."""
     usuarios = obtener_usuarios()
-    return usuarios.get(usuario) == password
+    hash_almacenado = usuarios.get(usuario)
+    if not hash_almacenado:
+        return False
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), hash_almacenado.encode("utf-8"))
+    except Exception:
+        return False
 
 
 def _crear_sesion_persistente(usuario):
