@@ -1,16 +1,5 @@
-import warnings
-import logging
-
-warnings.filterwarnings("ignore", message=".*st.cache.*", category=DeprecationWarning)
-warnings.filterwarnings("ignore", message=".*st.cache.*", category=UserWarning)
-class _FiltroStCache(logging.Filter):
-    def filter(self, record):
-        return "st.cache" not in record.getMessage()
-
-for _logger_name in ("streamlit", "streamlit.deprecation", "streamlit.logger", ""):
-    logging.getLogger(_logger_name).addFilter(_FiltroStCache())
-
 import streamlit as st
+import bcrypt
 from datetime import datetime, timedelta, timezone
 from streamlit_cookies_manager import EncryptedCookieManager
 
@@ -18,9 +7,10 @@ st.set_page_config(page_title="Atraccion de Talento", layout="wide", page_icon="
 
 SESSION_DAYS = 15
 
+
 cookies = EncryptedCookieManager(
     prefix="atraccion_talento_",
-    password=st.secrets.get("cookie_password", "cambia-esta-clave-en-secrets"),
+    password=st.secrets.cookies_manager.cookies_password,
 )
 
 if not cookies.ready():
@@ -38,9 +28,15 @@ def obtener_usuarios():
         return {}
 
 def verificar_login(usuario, password):
-    """Verifica si las credenciales son correctas"""
+    """Verifica credenciales comparando con el hash bcrypt almacenado en secrets."""
     usuarios = obtener_usuarios()
-    return usuarios.get(usuario) == password
+    hash_almacenado = usuarios.get(usuario)
+    if not hash_almacenado:
+        return False
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), hash_almacenado.encode("utf-8"))
+    except Exception:
+        return False
 
 
 def _crear_sesion_persistente(usuario):

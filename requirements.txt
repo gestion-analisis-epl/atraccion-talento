@@ -12,3 +12,5 @@ st-supabase-connection==2.1.1
 openpyxl>=3.1.0
 # Zona horaria
 pytz>=2023.3
+#Encriptación de contraseseñas
+bcrypt

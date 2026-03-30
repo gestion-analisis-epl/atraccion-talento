@@ -23,23 +23,42 @@ def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
             df = df[df['contratados_alta'].astype(int) > 0]
             if not df.empty:
                 df['primer_nombre'] = df['responsable_alta'].str.split().str[0]
-                df['primer_nombre'] = df['primer_nombre'].replace({'MARTA': 'HELEN', "SIN ESPECIFICAR": "SIN ESPECIFICAR"})
+                df['primer_nombre'] = df['primer_nombre'].replace({'MARTA': 'HELEN', "SIN ESPECIFICAR": "SIN ESPECIFICAR", "LETICIA": "LETY", "YULIANA": "YULI"})
                 resumen = df.groupby('primer_nombre')['contratados_alta'].sum().reset_index()
-                resumen = resumen.sort_values('contratados_alta', ascending=False)
-                fig = px.bar(
-                    resumen, 
-                    x='contratados_alta', 
-                    y='primer_nombre', 
-                    orientation='h', 
-                    text='contratados_alta', 
-                    color='primer_nombre',
-                    color_discrete_sequence=px.colors.sequential.Magma_r,
-                    title='Contrataciones realizadas por Ejecutivo',
-                    labels={'contratados_alta': 'Contrataciones', 'primer_nombre': 'Ejecutivo'},
-                )
+                resumen = resumen.sort_values('contratados_alta', ascending=True)
                 
-                fig.update_layout(showlegend=False, font=dict(weight='bold', size=13))
-                st.plotly_chart(fig)
+                options = {
+                    "tooltip": {
+                        "trigger": "axis",
+                        "axisPointer": {
+                            "type": "shadow"
+                        }
+                    },
+                    "legend": {"top": "5%", "left": "center", "show": False},
+                    "toolbox": {
+                        "feature": {
+                            "dataView": {"readOnly": True},
+                            "saveAsImage": {},
+                        }
+                    },
+                    "xAxis": {
+                        "type": "value"
+                    },
+                    "yAxis": {
+                        "type": "category",
+                        "data": [str(n) for n in resumen['primer_nombre']],
+                        "axisLabel": {"overflow": "truncate"}
+                    },
+                    "series": [
+                        {
+                            "name": "Contrataciones",
+                            "type": "bar",
+                            "label": {"show": True, "position": "inside", "fontWeight": "bold"},
+                            "data": [int(v) for v in resumen['contratados_alta']]
+                        }
+                    ]
+                }
+                st_echarts(options, height="400px", width="100%")
             else:
                 st.info('No se encontró información de contrataciones en el periodo seleccionado.')
         else:
@@ -146,16 +165,18 @@ def grafica_vacantes_por_empresa(df_vacantes):
             if not df.empty:
                 # Calcular días de cobertura actualizados para cada vacante
                 df['dias_cobertura_calculados'] = df.apply(calcular_dias_cobertura, axis=1)
-                
                 # Mostrar detalle de vacantes con nombre de la vacante y empresa
-                df_detalle = df[['id_sistema', 'empresa_vacante', 'puesto_vacante', 'plaza_vacante', 'vacantes_solicitadas', 'dias_cobertura_calculados', 'confidencial']].copy()
+                df_detalle = df[['id_sistema', 'fecha_autorizacion', 'empresa_vacante', 'puesto_vacante', 'plaza_vacante', 'vacantes_solicitadas', 'dias_cobertura_calculados', 'confidencial', 'fase_proceso']].copy()
+                df_detalle['fecha_autorizacion'] = df_detalle['fecha_autorizacion'].dt.date
                 df_detalle = df_detalle.rename(columns={
                     "id_sistema": "ID",
+                    "fecha_autorizacion": "Fecha de autorización",
                     "empresa_vacante": "Empresa", 
                     "puesto_vacante": "Puesto", 
                     "plaza_vacante": "Plaza",
                     "vacantes_solicitadas": "Vacantes",
-                    "dias_cobertura_calculados": "Días de cobertura"
+                    "dias_cobertura_calculados": "Días de cobertura",
+                    "fase_proceso": "Fase de proceso"
                 })
                 # df_detalle['Empresa'] = df_detalle['Empresa'].replace(empresas_map)
                 df_grafico = df_detalle.copy()
@@ -166,7 +187,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                 #})
                 df_detalle['Días de cobertura'] = df_detalle['Días de cobertura'].round(0).astype(int)
 
-                st.write('### Detalle de Vacantes por Empresa')
+                #st.write('### Detalle de Vacantes')
                 df_detalle = df_detalle.sort_values(by='Días de cobertura', ascending=False)
                 df_detalle.loc[df_detalle['confidencial'] == 'SI', 'Puesto'] = 'VACANTE'
                 st.dataframe(df_detalle, hide_index=True, column_config={
@@ -186,7 +207,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                     # Gráfico de barras
                     options = {
                         "tooltip": {"trigger": "item"},
-                        "legend": {"top": "5%", "left": "center"},
+                        "legend": {"top": "5%", "left": "center", "show": False},
                         "toolbox": {
                             "feature": {
                                 "dataView": {"readOnly": True},
@@ -239,7 +260,6 @@ def grafica_vacantes_por_area(df_vacantes):
                 }
                 resumen = resumen.rename(columns=columns_name) 
                 resumen = resumen.sort_values(by='Vacantes', ascending=False)
-                st.write('### Vacantes por Función de Área')
                 col1, col2 = st.columns([2, 2])
                 with col1:
                     st.dataframe(resumen, hide_index=True)
@@ -302,17 +322,35 @@ def grafica_contrataciones_mes(df_altas_filtrado):
                 df['mes_alta'] = pd.Categorical(df['mes_alta'], categories=meses_ordenados, ordered=True)
 
                 resumen = df.groupby('mes_alta', as_index=False)['contratados_alta'].sum()
-
-                fig = px.area(
-                    resumen,
-                    x='mes_alta',
-                    y='contratados_alta',
-                    title='Contrataciones por Mes',
-                    labels={'mes_alta': 'Mes', 'contratados_alta': 'Contrataciones'},
-                    color_discrete_sequence=px.colors.qualitative.Set3,
-                    line_shape='spline'
-                )
-                st.plotly_chart(fig)
+                
+                options = {
+                    "tooltip": {"trigger": "axis", "axisPointer": {"type": "line"}},
+                    "toolbox": {
+                        "feature": {
+                            "dataView": {"readOnly": True},
+                            "magicType": {"type": ["line", "bar"]},
+                            "restore": {},
+                            "saveAsImage": {}
+                        }
+                    },
+                    "xAxis": {
+                        "type": "category",
+                        "data": [str(n) for n in resumen['mes_alta']],
+                        "axisLabel": {"rotate": 45, "overflow": "truncate"}
+                    },
+                    "yAxis": {
+                        "type": "value"
+                    },
+                    "series": {
+                        "name": "Contrataciones por Mes",
+                        "type": "line",
+                        "areaStyle": {},
+                        "smooth": True,
+                        "data": [int(v) for v in resumen['contratados_alta']],
+                    }
+                }
+                st_echarts(options, height="350px", width="100%")
+               
             else:
                 st.info('No se encontró información de contrataciones en el periodo seleccionado.')
         else:
