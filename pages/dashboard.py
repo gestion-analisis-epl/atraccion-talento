@@ -306,7 +306,14 @@ with tab1:
 
     # No. VACANTES
     if not df_vacantes.empty:
-        n_vacantes = df_vacantes[df_vacantes['fecha_autorizacion'].notna()]['vacantes_solicitadas'].astype(int).sum()
+        vacantes_excluir = (
+            (df_vacantes['estatus_solicitud'] == 'CANCELADO') |
+            (df_vacantes['estatus_solicitud'] == 'FINALIZADO') |
+            (df_vacantes['estatus_solicitud'] == 'PAUSADO') |
+            (df_vacantes['fase_proceso'] == 'CONTRATADO')
+        )
+        n_vacantes = df_vacantes[df_vacantes['fecha_autorizacion'].notna()& ~vacantes_excluir]['vacantes_solicitadas'].astype(int).sum()
+        #st.dataframe(df_vacantes[df_vacantes['fecha_autorizacion'].notna()& ~vacantes_excluir])
     else:
         n_vacantes = 0
         st.error(f'Error al calcular vacantes. No se encontraron datos.')
