@@ -631,6 +631,14 @@ with tab2:
 
     with tab3:
         # Gráficas de vacantes (sin filtro - todo el tiempo)
+        vacantes_excluir = (
+            (df_vacantes['estatus_solicitud'] == 'CANCELADO') |
+            (df_vacantes['estatus_solicitud'] == 'FINALIZADO') |
+            (df_vacantes['estatus_solicitud'] == 'PAUSADO') |    
+            (df_vacantes['fase_proceso'] == 'CONTRATADO')
+        )
+        df_vacantes = df_vacantes[~vacantes_excluir]
+        
         st.write("### Detalle de Vacantes")
         grafica_vacantes_por_empresa(df_vacantes)
 
