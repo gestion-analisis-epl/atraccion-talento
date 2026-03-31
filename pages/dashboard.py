@@ -15,6 +15,7 @@ from utils.graficas_dashboard import (
     grafica_embudo_fase_proceso,
     grafica_contrataciones_por_empresa,
     contrataciones_area_redes_pagadas,
+    promedio_plaza_puesto,
 )
 from utils.auth import require_login
 from styles.styles import estilo_metricas
@@ -281,7 +282,7 @@ if ejecutivo_seleccionado != "Todos":
 # MÉTRICAS PRINCIPALES
 # ======================
 st.write("### :material/search_insights: Métricas principales")
-tab1, tab2, tab3, tab4 = st.tabs([":material/search_insights: Métricas Principales", ":material/analytics: Análisis Visual", ":material/info: Información de Vacantes", ":material/article_person: Redes Pagadas"])
+tab1, tab2, tab3, tab4, tab5= st.tabs([":material/search_insights: Métricas Principales", ":material/analytics: Análisis Visual", ":material/info: Información de Vacantes", ":material/article_person: Redes Pagadas", ":material/analytics: Promedio de Plaza y Puesto"])
 with tab1:
     col1, col2, col3 = st.columns([2, 2, 2])
 
@@ -357,10 +358,14 @@ with tab1:
         try:
             if not df_vacantes.empty:
                 df_cobertura = df_vacantes[
-                    (df_vacantes['vacantes_solicitadas'] > 0) &
+                    (df_vacantes['fase_proceso'] != 'CONTRATADO') &
+                    (df_vacantes['estatus_solicitud'] != 'FINALIZADO') &
+                    (df_vacantes['estatus_solicitud'] != 'PAUSADO') &
+                    (df_vacantes['estatus_solicitud'] != 'CANCELADO') &
                     (df_vacantes['fecha_autorizacion'].notna()) &
                     (df_vacantes['fecha_autorizacion'] != pd.Timestamp('1900-01-01'))
                 ]
+                
                 if not df_cobertura.empty:
                     df_cobertura['dias_calculados'] = df_cobertura.apply(calcular_dias_cobertura, axis=1)
                     promedio_cobertura = df_cobertura['dias_calculados'].dropna().mean()
@@ -384,8 +389,12 @@ with tab1:
                 # Filtrar solo las vacantes ADMINISTRATIVAS
                 df_administrativas = df_vacantes[
                     (df_vacantes['funcion_area_vacante'] == 'ADMINISTRATIVA') &
-                    (df_vacantes['vacantes_solicitadas'] > 0) &
-                    (df_vacantes['fecha_autorizacion'].notna())
+                    (df_vacantes['fase_proceso'] != 'CONTRATADO') &
+                    (df_vacantes['estatus_solicitud'] != 'FINALIZADO') &
+                    (df_vacantes['estatus_solicitud'] != 'PAUSADO') &
+                    (df_vacantes['estatus_solicitud'] != 'CANCELADO') &
+                    (df_vacantes['fecha_autorizacion'].notna()) &
+                    (df_vacantes['fecha_autorizacion'] != pd.Timestamp('1900-01-01'))
                 ].copy()
 
                 if not df_administrativas.empty:
@@ -412,8 +421,12 @@ with tab1:
                 # Filtrar solo las vacantes OPERATIVAS
                 df_operativas = df_vacantes[
                     (df_vacantes['funcion_area_vacante'] == 'OPERATIVA') &
-                    (df_vacantes['vacantes_solicitadas'] > 0) &
-                    (df_vacantes['fecha_autorizacion'].notna())
+                    (df_vacantes['fase_proceso'] != 'CONTRATADO') &
+                    (df_vacantes['estatus_solicitud'] != 'FINALIZADO') &
+                    (df_vacantes['estatus_solicitud'] != 'PAUSADO') &
+                    (df_vacantes['estatus_solicitud'] != 'CANCELADO') &
+                    (df_vacantes['fecha_autorizacion'].notna()) &
+                    (df_vacantes['fecha_autorizacion'] != pd.Timestamp('1900-01-01'))
                 ].copy()
 
                 if not df_operativas.empty:
@@ -654,3 +667,7 @@ with tab2:
     with tab4:
         st.write("### Contrataciones por Redes Pagadas")
         contrataciones_area_redes_pagadas(df_altas_filtrado)
+        
+    with tab5:
+        st.write('### Detalle de Promedio de Días de Cobertura por Plaza y Puesto')
+        promedio_plaza_puesto(df_vacantes_cerradas_filtrado)

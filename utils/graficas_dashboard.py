@@ -146,8 +146,6 @@ def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
     except Exception as e:
         st.error(f'Error al generar la gráfica de contrataciones por medio: {e}')
 
-
-
 def grafica_vacantes_por_empresa(df_vacantes):
     """
     Genera tabla de detalle, resumen y gráfica de pie con vacantes por empresa.
@@ -297,7 +295,6 @@ def grafica_vacantes_por_area(df_vacantes):
     except Exception as e:
         st.error(f'Error al generar la información de vacantes por área: {e}')
         
-        
 def grafica_contrataciones_mes(df_altas_filtrado):
     """
     Genera gráfica de barras con contrataciones por mes.
@@ -358,7 +355,6 @@ def grafica_contrataciones_mes(df_altas_filtrado):
     except Exception as e:
         st.error(f'Error al generar la gráfica de contrataciones por mes: {e}')
 
-
 def grafica_embudo_fase_proceso(df_vacantes_filtrado):
     """
     Genera gráfica de embudo con vacantes por fase de proceso.
@@ -378,6 +374,7 @@ def grafica_embudo_fase_proceso(df_vacantes_filtrado):
                 (df["estatus_solicitud"] != "PENDIENTE") & 
                 df['fecha_autorizacion'].notna() & 
                 (df["estatus_solicitud"] != "CANCELADO") &
+                (df["estatus_solicitud"] != "PAUSADO") &
                 (df['vacantes_solicitadas'] > 0)
                 ]
                 
@@ -483,3 +480,52 @@ def contrataciones_area_redes_pagadas(df_altas_filtrado):
             st.info('No se encontraron registros de contrataciones.')
     except Exception as e:
         st.error(f'Error al generar la información de contrataciones por área: {e}')
+        
+def promedio_plaza_puesto(df_vacantes_cerradas_filtrado):
+    """
+    Genera tabla de detalle y gráficas de promedio de días de cobertura por puesto y plaza.
+    
+    Args:
+        df_vacantes_cerradas_filtrado: DataFrame de vacantes cerradas filtrado por tiempo
+    """
+    try:
+        if not df_vacantes_cerradas_filtrado.empty:
+            df = df_vacantes_cerradas_filtrado.copy()
+            df['dias_cobertura_calculados'] = df.apply(calcular_dias_cobertura, axis=1)
+            """vacantes_excluir = (
+                (df['estatus_solicitud'] != "FINALIZADO") &
+                (df['fase_proceso'] != "CONTRATADO")
+            )
+            df = df[~vacantes_excluir]"""
+            df = df[df['vacantes_contratados'] > 0]
+            
+            col1, col2, col3 = st.columns([2, 2, 2])
+            st.write('### Tablas Detalle')
+            row_container = st.container(horizontal=True, horizontal_alignment='center')
+            
+            with col1:
+                valor_promedio_general = df['dias_cobertura_calculados'].mean().round(0)
+                valor_actual = 15 + 30 / 2
+                promedio_general = st.metric(label='Promedio Global', value=valor_promedio_general, delta=f"Meta actual: {valor_actual:.0f} días")
+                
+            with row_container:
+                df_plaza = df.groupby('plaza_vacante')['dias_cobertura_calculados'].mean().reset_index().sort_values(by='dias_cobertura_calculados', ascending=False).round(0)
+                df_plaza = df_plaza.rename(columns={'plaza_vacante': 'Plaza', 'dias_cobertura_calculados': 'Días de cobertura'})
+            
+            with col2:
+                plaza_mas_alta = st.metric(label=df_plaza.iloc[0]['Plaza'], value=f"{df_plaza.iloc[0]['Días de cobertura']:.0f} días")
+                
+            df_puesto = df.groupby('puesto_vacante')['dias_cobertura_calculados'].mean().reset_index().sort_values(by='dias_cobertura_calculados', ascending=False).round(0)
+            df_puesto = df_puesto.rename(columns={'puesto_vacante': 'Puesto', 'dias_cobertura_calculados': 'Días de cobertura'})
+            
+            with col3:
+                puesto_mas_alto = st.metric(label=df_puesto.iloc[0]['Puesto'], value=f"{df_puesto.iloc[0]['Días de cobertura']:.0f} días")
+            
+            with row_container:
+                tabla_plaza = st.dataframe(df_plaza, hide_index=True)
+                tabla_puesto = st.dataframe(df_puesto, hide_index=True)
+            
+            return plaza_mas_alta, promedio_general, tabla_plaza, tabla_puesto
+            
+    except Exception as e:
+        st.error(f'Error al calcular promedio de plaza y puesto: {e}')
