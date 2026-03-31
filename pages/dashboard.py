@@ -317,7 +317,7 @@ with tab1:
     else:
         n_vacantes = 0
         st.error(f'Error al calcular vacantes. No se encontraron datos.')
-    d = ((n_vacantes-18)/18)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
+    d = ((n_vacantes-21)/21)*100 # Valor fijo para delta. Se debe cambiar cada semana según vacantes abiertas
     col3.metric(label='Vacantes disponibles a la fecha', value=n_vacantes, delta=f"{d:.2f}%", delta_color="inverse")
 
     # Requisiciones vs Contrataciones
