@@ -153,7 +153,7 @@ def mostrar_app():
         icon=":material/upload:"
     )
     
-    pg = st.navigation(pages=[form_page, dashboard_page, show_data_page, import_data_page])
+    pg = st.navigation(pages=[dashboard_page, form_page, show_data_page, import_data_page])
     pg.run()
 
 # ======================
