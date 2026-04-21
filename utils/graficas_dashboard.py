@@ -8,7 +8,53 @@ import pandas as pd
 import plotly.express as px
 from utils.funciones_dashboard import empresas_map, calcular_dias_cobertura
 from config.opciones import EMPRESAS_NOMBRE_CORTO
-from streamlit_echarts import st_echarts
+from streamlit_echarts import st_echarts, JsCode
+from streamlit_pivot import st_pivot_table
+
+
+def tabla_dinamica_contrataciones(df_altas_filtrado):
+    """
+    Genera tabla dinámica de contrataciones con la información de altas.
+    
+    Args:
+        df_altas_filtrado: DataFrame filtrado de altas
+    """
+    
+    try:
+        if not df_altas_filtrado.empty:
+            df = df_altas_filtrado.copy()
+            df = df[df['contratados_alta'].astype(int) > 0]
+            if not df.empty:
+                tabla_dinamica = df.drop(columns=['id', 'id_registro', 'confidencial'])
+                tabla_dinamica = tabla_dinamica.rename(
+                    columns={
+                        'fecha_alta': 'Fecha de alta',
+                        'empresa_alta': 'Empresa',
+                        'puesto_alta': 'Puesto',
+                        'plaza_alta': 'Plaza',
+                        'area_alta': 'Área',
+                        'contratados_alta': 'Contrataciones',
+                        'medio_reclutamiento_alta': 'Medio de reclutamiento',
+                        'responsable_alta': 'Ejecutivo de reclutamiento',
+                    },
+                )
+                
+                st_pivot_table(
+                    tabla_dinamica, 
+                    key='pivot_table_ejecutivos',
+                    conditional_formatting=[{
+                        'type': 'data_bars',
+                        'apply_to': ['Contrataciones'],
+                        'color': '#1976d2',
+                        'fill': 'gradient'
+                    }]
+                )
+            else:
+                st.info('No se encontraron contrataciones en el periodo seleccionado.')
+        else:
+            st.info('No se encontraron registros de contrataciones.')
+    except Exception as e:
+        st.error(f'Error al mostrar tabla dinámica: {e}')
 
 def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
     """
@@ -17,47 +63,97 @@ def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
     Args:
         df_altas_filtrado: DataFrame filtrado de altas
     """
+    
     try:
         if not df_altas_filtrado.empty:
             df = df_altas_filtrado.copy()
             df = df[df['contratados_alta'].astype(int) > 0]
             if not df.empty:
                 df['primer_nombre'] = df['responsable_alta'].str.split().str[0]
-                df['primer_nombre'] = df['primer_nombre'].replace({'MARTA': 'HELEN', "SIN ESPECIFICAR": "SIN ESPECIFICAR", "LETICIA": "LETY", "YULIANA": "YULI"})
-                resumen = df.groupby('primer_nombre')['contratados_alta'].sum().reset_index()
-                resumen = resumen.sort_values('contratados_alta', ascending=True)
+                df['primer_nombre'] = df['primer_nombre'].replace({
+                    'MARTA': 'HELEN',
+                    "LETICIA": "LETY",
+                    "YULIANA": "YULI"
+                })
+
+                resumen = (
+                    df.groupby(['primer_nombre', 'area_alta'])['contratados_alta']
+                    .sum()
+                    .reset_index()
+                )
+
+                # Tabla pivote para alinear ambas áreas por reclutador
+                pivot = (
+                    resumen.pivot_table(
+                        index='primer_nombre',
+                        columns='area_alta',
+                        values='contratados_alta',
+                        aggfunc='sum',
+                        fill_value=0
+                    )
+                )
                 
+                # Ordenar por total ascendente (para barras horizontales)
+                pivot['_total'] = pivot.sum(axis=1)
+                pivot = pivot.sort_values('_total', ascending=True).drop(columns='_total')
+
+                nombres = pivot.index.tolist()
+                op_vals  = [int(v) for v in pivot.get('OPERATIVA',   [0]*len(nombres))]
+                adm_vals = [int(v) for v in pivot.get('ADMINISTRATIVA', [0]*len(nombres))]
+
                 options = {
-                    "tooltip": {
-                        "trigger": "axis",
-                        "axisPointer": {
-                            "type": "shadow"
-                        }
+                    "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}},
+                    "legend": {
+                        "data": ["Operativa", "Administrativa"],
+                        "top": "5%",
+                        "left": "center"
                     },
-                    "legend": {"top": "5%", "left": "center", "show": False},
+                    "grid": {
+                        "left": "3%", "right": "4%",
+                        "bottom": "3%", "containLabel": True
+                    },
                     "toolbox": {
                         "feature": {
                             "dataView": {"readOnly": True},
-                            "saveAsImage": {},
+                            "saveAsImage": {}
                         }
                     },
-                    "xAxis": {
-                        "type": "value"
-                    },
+                    "xAxis": {"type": "value"},
                     "yAxis": {
                         "type": "category",
-                        "data": [str(n) for n in resumen['primer_nombre']],
+                        "data": nombres,
                         "axisLabel": {"overflow": "truncate"}
                     },
                     "series": [
                         {
-                            "name": "Contrataciones",
+                            "name": "Operativa",
                             "type": "bar",
-                            "label": {"show": True, "position": "inside", "fontWeight": "bold"},
-                            "data": [int(v) for v in resumen['contratados_alta']]
+                            "stack": "total",
+                            "label": {
+                                "show": True,
+                                "position": "inside",
+                                "fontWeight": "bold",
+                                "formatter": "{c}"   # oculta el 0 opcionalmente
+                            },
+                            "emphasis": {"focus": "series"},
+                            "data": op_vals
+                        },
+                        {
+                            "name": "Administrativa",
+                            "type": "bar",
+                            "stack": "total",
+                            "label": {
+                                "show": True,
+                                "position": "inside",
+                                "fontWeight": "bold",
+                                "formatter": "{c}"
+                            },
+                            "emphasis": {"focus": "series"},
+                            "data": adm_vals
                         }
                     ]
                 }
+                
                 st_echarts(options, height="400px", width="100%")
             else:
                 st.info('No se encontró información de contrataciones en el periodo seleccionado.')
@@ -106,7 +202,7 @@ def grafica_contrataciones_por_empresa(df_altas_filtrado):
     except Exception as e:
         st.error(f'Error al generar la gráfica de contrataciones por ejecutivo: {e}')
 
-def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
+def grafica_contrataciones_por_medio_reclutamiento_1(df_altas_filtrado):
     """
     Genera gráfica de barras horizontales con contrataciones por medio de reclutamiento.
     
@@ -139,6 +235,71 @@ def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
                 )
                 fig.update_layout(yaxis=dict(tickmode="linear"), showlegend=False, font=dict(weight='bold', size=13))
                 st.plotly_chart(fig)
+            else:
+                st.info('No se encontró información de contrataciones en el periodo seleccionado.')
+        else:
+            st.info('No se encontró información de contrataciones.')
+    except Exception as e:
+        st.error(f'Error al generar la gráfica de contrataciones por medio: {e}')
+        
+def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
+    """"
+    Genera gráfica de barras horizontales con contrtaciones por medio de reclutamiento
+    
+    
+    Args:
+        df_altas_filtrado: DataFrame filtrado de altas
+    """
+    try:
+        if not df_altas_filtrado.empty:
+            df = df_altas_filtrado.copy()
+            df = df[df['contratados_alta'].astype(int) > 0]
+            if not df.empty:
+                resumen = df.groupby('medio_reclutamiento_alta')['contratados_alta'].sum().reset_index()
+                resumen = resumen.sort_values('contratados_alta', ascending=True)
+                
+                total = int(resumen['contratados_alta'].sum())
+                valores = [int(v) for v in resumen['contratados_alta']]
+                
+                options = {
+                    "tooltip": {
+                        "trigger": "axis",
+                        "axisPointer": {
+                            "type": "shadow"
+                        },
+                        "formatter": JsCode(
+                            f"function(p){{ return p[0].name + ': ' + p[0].value + ' (' + (p[0].value / {total} * 100).toFixed(2) + '%)'; }}"
+                        )
+                    },
+                    "legend": {"top": "5%", "left": "center", "show": False},
+                    "toolbox": {
+                        "feature": {
+                            "dataView": {"readOnly": True},
+                            "saveAsImage": {},
+                        }
+                    },
+                    "xAxis": {
+                        "type": "value"
+                    },
+                    "yAxis": {
+                        "type": "category",
+                        "data": [str(n) for n in resumen['medio_reclutamiento_alta']],
+                        "axisLabel": {"overflow": "truncate"}
+                    },
+                    "series": [
+                        {
+                            "name": "Contrataciones",
+                            "type": "bar",
+                            "label": {
+                                "show": True,
+                                "position": "inside",
+                                "fontWeight": "bold",
+                            },
+                            "data": valores
+                        }
+                    ]
+                }
+                st_echarts(options, height="400px", width="100%")
             else:
                 st.info('No se encontró información de contrataciones en el periodo seleccionado.')
         else:

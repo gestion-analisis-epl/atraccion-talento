@@ -16,6 +16,7 @@ from utils.graficas_dashboard import (
     grafica_contrataciones_por_empresa,
     contrataciones_area_redes_pagadas,
     promedio_plaza_puesto,
+    tabla_dinamica_contrataciones
 )
 from utils.auth import require_login
 from styles.styles import estilo_metricas
@@ -625,6 +626,9 @@ with tab1:
 # ======================
 with tab2:
     st.write("### :material/analytics: Análisis visual")
+    
+    st.write("#### Tabla dinámica de contrataciones")
+    tabla_dinamica_contrataciones(df_altas_filtrado)
 
     # Gráficas de contrataciones (con filtro)
     st.write("#### Contrataciones por Ejecutivo")

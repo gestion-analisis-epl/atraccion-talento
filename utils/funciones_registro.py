@@ -29,6 +29,7 @@ def registrar_alta(conn):
         if not puesto_alta.strip():
             st.error("Debes ingresar un puesto.")
         else:
+            
             try:
                 id_maestra = insertar_maestra(conn, "Alta", {
                     "puesto": puesto_alta.strip(),
@@ -45,7 +46,7 @@ def registrar_alta(conn):
                     "contratados_alta": contratados_alta,
                     "medio_reclutamiento_alta": medio_reclutamiento_alta,
                     "responsable_alta": responsable_alta,}, id_maestra)
-                st.success("Alta registrada exitosamente", icon="✅")
+                st.toast("Alta registrada exitosamente", icon="✅")
             except Exception as e:
                     st.error(f"Error al registrar la alta: {e}")
                     
@@ -87,7 +88,7 @@ def registrar_baja(conn):
                     "tipo_baja": tipo_baja,
                     "motivo_baja": motivo_baja.strip().upper().replace('Á', 'A').replace('É', 'E').replace('Í', 'I').replace('Ó', 'O').replace('Ú', 'U'),
                 }, id_maestra)
-                st.success("Baja registrada exitosamente", icon="✅")
+                st.toast("Baja registrada exitosamente", icon="✅")
             except Exception as e:
                 st.error(f"Error al registrar la baja: {e}")
                 
