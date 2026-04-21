@@ -349,9 +349,22 @@ def grafica_vacantes_por_empresa(df_vacantes):
                 #st.write('### Detalle de Vacantes')
                 df_detalle = df_detalle.sort_values(by='Días de cobertura', ascending=False)
                 df_detalle.loc[df_detalle['confidencial'] == 'SI', 'Puesto'] = 'VACANTE'
-                st.dataframe(df_detalle, hide_index=True, column_config={
-                    'confidencial': None
-                })
+                df_detalle = df_detalle.drop(columns=['confidencial']).reset_index(drop=True)
+                
+                st_pivot_table(
+                    df_detalle,
+                    key='pivot_table_vacantes',
+                    rows=['ID','Empresa', 'Puesto'],
+                    values=['Vacantes', 'Días de cobertura'],
+                    aggregation={'Vacantes': 'sum', 'Días de cobertura': 'avg'},
+                    conditional_formatting=[{
+                        'type': 'color_scale',
+                        'apply_to': ['Días de cobertura'],
+                        'min_color': '#2e7d32',
+                        'mid_color': "#eef114",
+                        'max_color': "#F10A0A"
+                    }]
+                )
 
                 # Resumen por empresa
                 resumen = df_grafico.groupby('Empresa')['Vacantes'].sum().reset_index()

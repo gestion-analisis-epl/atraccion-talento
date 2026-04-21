@@ -16,7 +16,7 @@ from utils.graficas_dashboard import (
     grafica_contrataciones_por_empresa,
     contrataciones_area_redes_pagadas,
     promedio_plaza_puesto,
-    tabla_dinamica_contrataciones
+    tabla_dinamica_contrataciones,
 )
 from utils.auth import require_login
 from styles.styles import estilo_metricas
