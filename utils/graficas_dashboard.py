@@ -25,9 +25,10 @@ def tabla_dinamica_contrataciones(df_altas_filtrado):
             df = df_altas_filtrado.copy()
             df = df[df['contratados_alta'].astype(int) > 0]
             if not df.empty:
-                tabla_dinamica = df.drop(columns=['id', 'id_registro', 'confidencial'])
+                tabla_dinamica = df.drop(columns=['id_registro', 'confidencial'])
                 tabla_dinamica = tabla_dinamica.rename(
                     columns={
+                        'id': 'ID',
                         'fecha_alta': 'Fecha de alta',
                         'empresa_alta': 'Empresa',
                         'puesto_alta': 'Puesto',
@@ -42,6 +43,10 @@ def tabla_dinamica_contrataciones(df_altas_filtrado):
                 st_pivot_table(
                     tabla_dinamica, 
                     key='pivot_table_ejecutivos',
+                    rows=['Fecha de alta'],
+                    columns=['Ejecutivo de reclutamiento', 'Área'],
+                    values=['Contrataciones'],
+                    aggregation={'Contrataciones': 'sum', 'ID': 'count'},
                     conditional_formatting=[{
                         'type': 'data_bars',
                         'apply_to': ['Contrataciones'],
