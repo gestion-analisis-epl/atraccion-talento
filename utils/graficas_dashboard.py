@@ -47,12 +47,15 @@ def tabla_dinamica_contrataciones(df_altas_filtrado):
                     columns=['Ejecutivo de reclutamiento', 'Área'],
                     values=['Contrataciones'],
                     aggregation={'Contrataciones': 'sum', 'ID': 'count'},
+                    show_totals=True,
+                    interactive=True,
                     conditional_formatting=[{
                         'type': 'data_bars',
                         'apply_to': ['Contrataciones'],
                         'color': '#1976d2',
                         'fill': 'gradient'
-                    }]
+                    }],
+                    export_filename="contrataciones"
                 )
             else:
                 st.info('No se encontraron contrataciones en el periodo seleccionado.')
@@ -362,13 +365,17 @@ def grafica_vacantes_por_empresa(df_vacantes):
                     rows=['ID','Empresa', 'Puesto'],
                     values=['Vacantes', 'Días de cobertura'],
                     aggregation={'Vacantes': 'sum', 'Días de cobertura': 'avg'},
-                    conditional_formatting=[{
-                        'type': 'color_scale',
-                        'apply_to': ['Días de cobertura'],
-                        'min_color': '#2e7d32',
-                        'mid_color': "#eef114",
-                        'max_color': "#F10A0A"
-                    }]
+                    conditional_formatting=[
+                        {
+                            "type": "threshold",
+                            "apply_to": ['Días de cobertura'],
+                            "conditions": [
+                                {"operator": "gt", "value": 15,
+                                 "background": "#1565c0", "bold": True},
+                            ],
+                        },
+                    ],
+                    export_filename="vacantes_actuales"
                 )
 
                 # Resumen por empresa
