@@ -4,7 +4,7 @@ import json
 import re
 
 # Configuración
-N8N_WEBHOOK_URL = st.secrets.n8n_webhook.url_test
+N8N_WEBHOOK_URL = st.secrets.n8n_webhook.url
 MAX_HISTORY = 10
 
 st.set_page_config(page_title="RH Data Insights", layout="wide")
