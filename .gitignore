@@ -88,3 +88,4 @@ htmlcov/
 *.xlsx
 *.xls
 datos_sensibles/
+prompt.md

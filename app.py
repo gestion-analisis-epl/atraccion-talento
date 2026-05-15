@@ -5,7 +5,7 @@ from streamlit_cookies_manager import EncryptedCookieManager
 
 st.set_page_config(page_title="Atraccion de Talento", layout="wide", page_icon=":material/menu:")
 
-SESSION_DAYS = 15
+SESSION_DAYS = 30
 
 
 cookies = EncryptedCookieManager(
@@ -153,7 +153,13 @@ def mostrar_app():
         icon=":material/upload:"
     )
     
-    pg = st.navigation(pages=[dashboard_page, form_page, show_data_page, import_data_page])
+    chatbot_page = st.Page(
+        page="pages/chatbot.py",
+        title="Chatbot",
+        icon=":material/chat:"
+    )
+
+    pg = st.navigation(pages=[dashboard_page, form_page, show_data_page, import_data_page, chatbot_page])
     pg.run()
 
 # ======================

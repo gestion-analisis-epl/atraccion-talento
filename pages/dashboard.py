@@ -59,7 +59,11 @@ data_altas = (conn.table("altas")
                       """).execute())
 todos_registros_altas = data_altas.data
 
-data_bajas = (conn.table("bajas").select("*").execute())
+data_bajas = (conn.table("bajas_sistema")
+              .select("*")
+              .gte("fecha_baja", "2024-01-01")
+              .lte("fecha_baja", "2026-12-31")
+              .execute())
 todos_registros_bajas = data_bajas.data
 
 data_expedientes = (conn.table("expedientes").select("*").execute())
@@ -86,7 +90,7 @@ else:
 
 if todos_registros_bajas:
     df_bajas = pd.DataFrame(todos_registros_bajas)
-    df_bajas['fecha_registro_baja'] = pd.to_datetime(df_bajas['fecha_registro_baja'])
+    df_bajas['fecha_baja'] = pd.to_datetime(df_bajas['fecha_baja'])
 else:
     df_bajas = pd.DataFrame()
     
@@ -108,7 +112,7 @@ if not df_altas.empty:
     años_altas = df_altas['fecha_alta'].dt.year.dropna().unique().tolist()
     años_disponibles.extend(años_altas)
 if not df_bajas.empty:
-    años_bajas = df_bajas['fecha_registro_baja'].dt.year.dropna().unique().tolist()
+    años_bajas = df_bajas['fecha_baja'].dt.year.dropna().unique().tolist()
     años_disponibles.extend(años_bajas)
 
 # Filtrar valores NaN y convertir a enteros
@@ -223,7 +227,7 @@ st.markdown("---")
 df_vacantes_filtrado = filtrar_datos(df_vacantes, 'fecha_solicitud', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_vacantes_cerradas_filtrado = filtrar_datos(df_vacantes_cerradas, 'fecha_cobertura', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_altas_filtrado = filtrar_datos(df_altas, 'fecha_alta', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
-df_bajas_filtrado = filtrar_datos(df_bajas, 'fecha_registro_baja', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+df_bajas_filtrado = filtrar_datos(df_bajas, 'fecha_baja', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_requisiciones_filtrado = filtrar_datos(df_vacantes, 'fecha_autorizacion', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_expedientes_filtrado = filtrar_datos(df_expedientes, 'fecha_ingreso_colaborador', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 
