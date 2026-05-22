@@ -187,7 +187,7 @@ def grafica_contrataciones_por_empresa(df_altas_filtrado):
                     title='Contrataciones realizadas por Empresa',
                 )
                 fig.update_layout(**_PLOTLY_LAYOUT, showlegend=False)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             else:
                 st.info('No se encontró información de contrataciones en el periodo seleccionado.')
         else:
@@ -506,7 +506,7 @@ def grafica_embudo_fase_proceso(df_vacantes_filtrado):
                     color_discrete_sequence=_PALETTE,
                 )
                 fig.update_layout(**_PLOTLY_LAYOUT, showlegend=False)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             else:
                 st.info('No se encontraron fases de proceso registradas.')
         else:

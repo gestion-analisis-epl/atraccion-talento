@@ -117,14 +117,14 @@ def mostrar_login():
 
     with col2:
         with st.container(border=False):
-            st.image("img/grupo-epl.png", use_container_width=True)
+            st.image("img/grupo-epl.png", width="stretch")
             st.markdown('<p class="login-title">Atracción de Talento</p>', unsafe_allow_html=True)
             st.markdown('<p class="login-subtitle">Especialistas Profesionales de León</p>', unsafe_allow_html=True)
 
             usuario = st.text_input(":material/person: Usuario", key="login_usuario")
             password = st.text_input(":material/password: Contraseña", type="password", key="login_password")
 
-            if st.button("Ingresar", type="primary", use_container_width=True):
+            if st.button("Ingresar", type="primary", width="stretch"):
                 if verificar_login(usuario, password):
                     st.session_state["autenticado"] = True
                     st.session_state["usuario"] = usuario
@@ -183,7 +183,7 @@ def mostrar_app():
 
     # Botón y tarjeta de usuario al fondo del sidebar (se renderizan después de los nav links)
     with st.sidebar:
-        if st.button(":material/logout: Cerrar sesión", use_container_width=True):
+        if st.button(":material/logout: Cerrar sesión", width="stretch"):
             st.session_state["logout_solicitado"] = True
             st.session_state["autenticado"] = False
             st.session_state["usuario"] = None

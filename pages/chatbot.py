@@ -24,7 +24,7 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
         if "chart" in msg and msg["chart"]:
-            st.plotly_chart(msg["chart"], use_container_width=True)
+            st.plotly_chart(msg["chart"], width="stretch")
 
 # Función para limpiar y extraer JSON de la respuesta
 def extract_json_payload(text):
@@ -93,7 +93,7 @@ if prompt := st.chat_input("Escribe tu pregunta (ej: 'Grafica las vacantes por �
                 
                 if chart_data:
                     try:
-                        st.plotly_chart(chart_data, use_container_width=True)
+                        st.plotly_chart(chart_data, width="stretch")
                         new_msg["chart"] = chart_data
                     except Exception as chart_err:
                         st.warning("Se recibió una gráfica pero el formato no es compatible con Plotly.")
