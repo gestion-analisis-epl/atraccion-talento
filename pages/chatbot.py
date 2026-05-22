@@ -7,14 +7,13 @@ import re
 N8N_WEBHOOK_URL = st.secrets.n8n_webhook.url
 MAX_HISTORY = 10
 
-st.set_page_config(page_title="RH Data Insights", layout="wide")
-st.write("### :material/chat: Chatbot de Recursos Humanos")
+st.markdown("""
+<div class="dash-header">
+    <span class="dash-title">Chatbot de Recursos Humanos</span>
+</div>
+""", unsafe_allow_html=True)
 
-st.write("""Instrucciones: Escribe tu consulta de forma clara y específica. Indica si la información corresponde a altas, bajas o vacantes.
-         Si necesitas datos de un período determinado, incluye las fechas o el rango de tiempo directamente en tu pregunta.
-         El sistema solo responderá con datos que tenga disponibilidad en el período solicitado.
-         Puede entregar texto o gráficas. Si requieres un formato específico, mencionalo en tu consulta.
-         """)
+st.caption("Escribe tu consulta de forma clara y específica. Indica si la información corresponde a altas, bajas o vacantes. Si necesitas datos de un período determinado, incluye las fechas en tu pregunta.")
 
 # Inicializar historial
 if "messages" not in st.session_state:

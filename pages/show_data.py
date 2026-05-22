@@ -12,8 +12,14 @@ require_login()
 MEXICO_TZ = pytz.timezone('America/Mexico_City')
 
 conn = st.connection("supabase", type=SupabaseConnection)
-consulta = st.selectbox("¿Qué deseas consulta?", ("Altas", "Bajas", "Vacantes", "Todos los registros"), index=None, placeholder="Selecciona una opción", key="consulta")
-st.write("---")
+
+st.markdown("""
+<div class="dash-header">
+    <span class="dash-title">Mostrar Datos</span>
+</div>
+""", unsafe_allow_html=True)
+
+consulta = st.selectbox("¿Qué deseas consultar?", ("Altas", "Bajas", "Vacantes", "Todos los registros"), index=None, placeholder="Selecciona una opción", key="consulta")
 
 # ======================
 # CONSULTAR UNA ALTA

@@ -20,7 +20,12 @@ require_login()
 conn = st.connection("supabase", type=SupabaseConnection)
 MEXICO_TZ = pytz.timezone("America/Mexico_City")
 
-st.write("### Importar datos desde archivo de Enla-c")
+st.markdown("""
+<div class="dash-header">
+    <span class="dash-title">Importar Datos</span>
+    <span class="dash-badge">Enla-c</span>
+</div>
+""", unsafe_allow_html=True)
 
 # --- Subida del archivo ---
 archivo = st.file_uploader("Selecciona un archivo", type=["xlsx", "xls"], key="import_file")

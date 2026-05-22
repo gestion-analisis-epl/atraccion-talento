@@ -19,7 +19,6 @@ from utils.graficas_dashboard import (
     tabla_dinamica_contrataciones,
 )
 from utils.auth import require_login
-from styles.styles import estilo_metricas
 
 # Requerir autenticación antes de mostrar cualquier contenido
 require_login()
@@ -34,12 +33,14 @@ data_actualizacion = (conn.table("registros_rh").select("ultima_actualizacion").
 ultima_actualizacion = data_actualizacion.data[0]['ultima_actualizacion']
 
 
-st.write("### :material/chart_data: Dashboard de Reclutamiento")
-st.write(f'Última actualización: {datetime.strptime(ultima_actualizacion, '%Y-%m-%d').date()}')
-st.markdown("---")
+ultima_fecha = datetime.strptime(ultima_actualizacion, '%Y-%m-%d').date()
+st.markdown(f"""
+<div class="dash-header">
+    <span class="dash-title">Dashboard de Reclutamiento</span>
+    <span class="dash-badge">Actualizado: {ultima_fecha}</span>
+</div>
+""", unsafe_allow_html=True)
 
-css = estilo_metricas()
-st.markdown(css, unsafe_allow_html=True)
 
 # Obtener datos completos
 conteo_vacantes = (conn.table("vacantes")

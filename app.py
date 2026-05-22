@@ -2,6 +2,7 @@ import streamlit as st
 import bcrypt
 from datetime import datetime, timedelta, timezone
 from streamlit_cookies_manager import EncryptedCookieManager
+from styles.styles import estilo_metricas, estilo_dashboard
 
 st.set_page_config(page_title="Atraccion de Talento", layout="wide", page_icon=":material/menu:")
 
@@ -86,19 +87,43 @@ def _eliminar_sesion_persistente():
     cookies.save()
 
 def mostrar_login():
-    """Muestra la pantalla de login"""
-    st.title(":material/key: Acceso al Sistema")
-    st.markdown("### Atracción de Talento - Especialistas Profesionales de León")
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
+    st.markdown("""
+    <style>
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        padding: 32px 28px !important;
+        border: none !important;
+        border-radius: 14px !important;
+        background: rgba(255,255,255,0.04) !important;
+        box-shadow: 0 4px 40px rgba(0,0,0,0.25) !important;
+    }
+    .login-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #ffffff;
+        text-align: center;
+        margin: 12px 0 4px 0;
+        letter-spacing: -0.01em;
+    }
+    .login-subtitle {
+        font-size: 0.78rem;
+        color: rgba(255,255,255,0.4);
+        text-align: center;
+        margin-bottom: 24px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 1.1, 1])
+
     with col2:
-        st.markdown("---")
-        usuario = st.text_input(":material/person: Usuario", key="login_usuario")
-        password = st.text_input(":material/password: Contraseña", type="password", key="login_password")
-        
-        col_btn1, col_btn2 = st.columns(2)
-        with col_btn1:
+        with st.container(border=False):
+            st.image("img/grupo-epl.png", use_container_width=True)
+            st.markdown('<p class="login-title">Atracción de Talento</p>', unsafe_allow_html=True)
+            st.markdown('<p class="login-subtitle">Especialistas Profesionales de León</p>', unsafe_allow_html=True)
+
+            usuario = st.text_input(":material/person: Usuario", key="login_usuario")
+            password = st.text_input(":material/password: Contraseña", type="password", key="login_password")
+
             if st.button("Ingresar", type="primary", use_container_width=True):
                 if verificar_login(usuario, password):
                     st.session_state["autenticado"] = True
@@ -108,58 +133,106 @@ def mostrar_login():
                     st.rerun()
                 else:
                     st.error(":material/cancel: Usuario o contraseña incorrectos")
-        
-        with col_btn2:
-            if st.button("Limpiar", use_container_width=True):
-                st.rerun()
 
 def mostrar_app():
-    """Muestra la aplicación principal"""
-    st.title("Atracción de Talento")
-    
+    usuario  = st.session_state.get("usuario", "")
+    iniciales = usuario[:2].upper() if usuario else "?"
+
+    # Logo fijado arriba del sidebar
     with st.sidebar:
-        st.markdown('<h2 style="text-align: center">Especialistas Profesionales de León</h2>', unsafe_allow_html=True)
-        st.sidebar.image("img/grupo-epl.png")
-        
-        st.markdown("---")
-        st.write(f":material/account_circle: Usuario: **{st.session_state.get('usuario', 'N/A')}**")
-        if st.button(":material/logout: Cerrar sesión", use_container_width=True):
-            st.session_state["logout_solicitado"] = True
-            st.session_state["autenticado"] = False
-            st.session_state["usuario"] = None
-            _eliminar_sesion_persistente()
-            st.rerun()
-    
+        st.logo("img/grupo-epl.png", size="large")
+
     form_page = st.Page(
-        page = "pages/form.py",
-        title = "Formulario de Atracción de Talento",
-        icon = ":material/add_notes:"
+        page="pages/form.py",
+        title="Gestión de Registros",
+        icon=":material/add_notes:"
     )
     dashboard_page = st.Page(
-        page = "pages/dashboard.py",
-        title = "Dashboard",
-        icon = ":material/analytics:"
+        page="pages/dashboard.py",
+        title="Dashboard",
+        icon=":material/analytics:"
     )
-    
+    comparativa_anual_page = st.Page(
+        page="pages/comparativa_anual.py",
+        title="Comparación Anual",
+        icon=":material/trending_up:"
+    )
     show_data_page = st.Page(
-        page = "pages/show_data.py",
-        title = "Mostrar Datos",
-        icon = ":material/database:"
+        page="pages/show_data.py",
+        title="Mostrar Datos",
+        icon=":material/database:"
     )
-    
     import_data_page = st.Page(
         page="pages/import.py",
         title="Importar Datos",
         icon=":material/upload:"
     )
-    
     chatbot_page = st.Page(
         page="pages/chatbot.py",
         title="Chatbot",
         icon=":material/chat:"
     )
 
-    pg = st.navigation(pages=[dashboard_page, form_page, show_data_page, import_data_page, chatbot_page])
+    st.markdown(estilo_metricas() + estilo_dashboard(), unsafe_allow_html=True)
+
+    pg = st.navigation({
+        "Análisis": [dashboard_page, comparativa_anual_page],
+        "Registros": [form_page, show_data_page, import_data_page],
+        "Herramientas": [chatbot_page],
+    })
+
+    # Botón y tarjeta de usuario al fondo del sidebar (se renderizan después de los nav links)
+    with st.sidebar:
+        if st.button(":material/logout: Cerrar sesión", use_container_width=True):
+            st.session_state["logout_solicitado"] = True
+            st.session_state["autenticado"] = False
+            st.session_state["usuario"] = None
+            _eliminar_sesion_persistente()
+            st.rerun()
+
+        st.divider()
+
+        st.markdown(f"""
+        <style>
+        .user-card {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            margin: 4px 0 0 0;
+        }}
+        .user-avatar {{
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #000;
+            letter-spacing: 0.03em;
+        }}
+        .user-name {{
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.85);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }}
+        </style>
+        <div class="user-card">
+            <div class="user-avatar">{iniciales}</div>
+            <span class="user-name">{usuario}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
     pg.run()
 
 # ======================

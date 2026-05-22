@@ -5,135 +5,135 @@ showErrorDetails = "none"
 enableStaticServing = true
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-Thin.ttf"
+family = "Inter"
+url = "app/static/Inter-VariableFont_opsz,wght.ttf"
 style = "normal"
 weight = "100"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-ExtraLight.ttf"
+family = "Inter"
+url = "app/static/Inter-VariableFont_opsz,wght.ttf"
 style = "normal"
 weight = "200"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-Light.ttf"
+family = "Inter"
+url = "app/static/Inter-VariableFont_opsz,wght.ttf"
 style = "normal"
 weight = "300"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-Regular.ttf"
+family = "Inter"
+url = "app/static/Inter-VariableFont_opsz,wght.ttf"
 style = "normal"
 weight = "400"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-Medium.ttf"
+family = "Inter"
+url = "app/static/Inter-VariableFont_opsz,wght.ttf"
 style = "normal"
 weight = "500"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-SemiBold.ttf"
+family = "Inter"
+url = "app/static/Inter-VariableFont_opsz,wght.ttf"
 style = "normal"
 weight = "600"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-Bold.ttf"
+family = "Inter"
+url = "app/static/Inter-VariableFont_opsz,wght.ttf"
 style = "normal"
 weight = "700"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-ExtraBold.ttf"
+family = "Inter"
+url = "app/static/Inter-VariableFont_opsz,wght.ttf"
 style = "normal"
 weight = "800"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-Black.ttf"
+family = "Inter"
+url = "app/static/Inter-VariableFont_opsz,wght.ttf"
 style = "normal"
 weight = "900"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-ThinItalic.ttf"
+family = "Inter"
+url = "app/static/Inter-Italic-VariableFont_opsz,wght.ttf"
 style = "italic"
 weight = "100"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-ExtraLightItalic.ttf"
+family = "Inter"
+url = "app/static/Inter-Italic-VariableFont_opsz,wght.ttf"
 style = "italic"
 weight = "200"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-LightItalic.ttf"
+family = "Inter"
+url = "app/static/Inter-Italic-VariableFont_opsz,wght.ttf"
 style = "italic"
 weight = "300"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-Italic.ttf"
+family = "Inter"
+url = "app/static/Inter-Italic-VariableFont_opsz,wght.ttff"
 style = "italic"
 weight = "400"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-MediumItalic.ttf"
+family = "Inter"
+url = "app/static/Inter-Italic-VariableFont_opsz,wght.ttf"
 style = "italic"
 weight = "500"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-SemiBoldItalic.ttf"
+family = "Inter"
+url = "app/static/Inter-Italic-VariableFont_opsz,wght.ttf"
 style = "italic"
 weight = "600"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-BoldItalic.ttf"
+family = "Inter"
+url = "app/static/Inter-Italic-VariableFont_opsz,wght.ttf"
 style = "italic"
 weight = "700"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-ExtraBoldItalic.ttf"
+family = "Inter"
+url = "app/static/Inter-Italic-VariableFont_opsz,wght.ttf"
 style = "italic"
 weight = "800"
 
 [[theme.fontFaces]]
-family = "Poppins"
-url = "app/static/Poppins-BlackItalic.ttf"
+family = "Inter"
+url = "app/static/Inter-Italic-VariableFont_opsz,wght.ttf"
 style = "italic"
 weight = "900"
 
 [theme]
 base = "dark"
-primaryColor = "#1ed760"
+primaryColor = "#14b8a6"
 backgroundColor = "#2a2a2a"
 secondaryBackgroundColor = "#121212"
 codeBackgroundColor = "#121212"
 textColor = "#ffffff"
-linkColor = "#1ed760"
+linkColor = "#14b8a6"
 borderColor = "#7c7c7c"
 showWidgetBorder = true
 baseRadius = "0.3rem"
 buttonRadius = "full"
-font = "Poppins, sans-serif"
-baseFontSize = 16
-baseFontWeight = 300
-headingFont = "Poppins, sans-serif"
-headingFontSizes = ["2.5rem", "2rem", "1,75rem"]
-headingFontWeights = [700, 500, 400]
+font = "Inter, sans-serif"
+baseFontSize = 14
+baseFontWeight = 400
+headingFont = "Inter, sans-serif"
+headingFontSizes = ["2rem", "1.5rem", "1.25rem"]
+headingFontWeights = [700, 600, 500]
 
 
 [theme.sidebar]
 backgroundColor = "#121212"
 secondaryBackgroundColor = "#000000"
 codeBackgroundColor = "#2a2a2a"
-borderColor = "#696969"
+borderColor = "#1e3a38"

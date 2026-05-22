@@ -17,9 +17,11 @@ require_login()
 # Initialize Supabase connection
 conn = st.connection("supabase", type=SupabaseConnection)
 
-st.write("## Formulario de Atracción de Talento")
-st.write("Este formulario permite registrar, actualizar o eliminar datos de la base de datos de atracción de talento.")
-st.write("---")
+st.markdown("""
+<div class="dash-header">
+    <span class="dash-title">Gestión de Registros</span>
+</div>
+""", unsafe_allow_html=True)
  
 opcion = st.selectbox(
     "¿Qué desea registrar en la base de datos",
