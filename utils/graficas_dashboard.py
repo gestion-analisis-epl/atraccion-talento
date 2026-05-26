@@ -169,25 +169,76 @@ def grafica_contrataciones_por_empresa(df_altas_filtrado):
             df = df[df['contratados_alta'].astype(int) > 0]
             if not df.empty:
                 df.replace(EMPRESAS_NOMBRE_CORTO, inplace=True)
-                resumen = df.groupby('empresa_alta')['contratados_alta'].sum().reset_index()
-                resumen = resumen.sort_values('contratados_alta', ascending=False)
-                resumen['total_contratados'] = resumen['contratados_alta'].sum()
-                resumen['porcentaje'] = (resumen['contratados_alta'] / resumen['total_contratados'] * 100).round(1)
-                resumen['etiqueta'] = resumen.apply(lambda row: f"{row['contratados_alta']} ({row['porcentaje']}%)", axis=1)
-                resumen.rename(columns={'empresa_alta': 'Empresa', 'etiqueta': 'Contratados', 'contratados_alta': 'Total'}, inplace=True)
-
-                fig = px.bar(
-                    resumen,
-                    x='Total',
-                    y='Empresa',
-                    orientation='h',
-                    text='Contratados',
-                    color='Empresa',
-                    color_discrete_sequence=_PALETTE,
-                    title='Contrataciones realizadas por Empresa',
+                resumen = (
+                    df.groupby('empresa_alta')['contratados_alta']
+                    .sum()
+                    .reset_index()
+                    .sort_values('contratados_alta', ascending=False)
                 )
-                fig.update_layout(**_PLOTLY_LAYOUT, showlegend=False)
-                st.plotly_chart(fig, width="stretch")
+
+                todas = resumen['empresa_alta'].tolist()
+
+                with st.popover(":material/filter_list: Empresas"):
+                    seleccionadas = st.multiselect(
+                        "Mostrar empresas",
+                        options=todas,
+                        default=todas,
+                        key="sel_empresas_contrataciones",
+                    )
+
+                if not seleccionadas:
+                    st.info('Selecciona al menos una empresa para ver la gráfica.')
+                    return
+
+                df_sel = resumen[resumen['empresa_alta'].isin(seleccionadas)].sort_values('contratados_alta', ascending=True)
+                empresas_sel = df_sel['empresa_alta'].tolist()
+                valores_sel  = [int(v) for v in df_sel['contratados_alta'].tolist()]
+                total_sel    = sum(valores_sel)
+
+                data_items = []
+                for i, (empresa, valor) in enumerate(zip(empresas_sel, valores_sel)):
+                    pct = valor / total_sel * 100 if total_sel > 0 else 0
+                    data_items.append({
+                        "value": valor,
+                        "itemStyle": {"color": _PALETTE[todas.index(empresa) % len(_PALETTE)], "borderRadius": [0, 4, 4, 0]},
+                        "label": {
+                            "show": True,
+                            "position": "right",
+                            "color": _TEXT,
+                            "fontSize": 11,
+                            "formatter": f"{valor} ({pct:.1f}%)",
+                        },
+                    })
+
+                options = {
+                    "tooltip": {
+                        "trigger": "axis",
+                        "axisPointer": {"type": "shadow"},
+                        "backgroundColor": "rgba(20,20,20,0.92)",
+                        "borderColor": "rgba(255,255,255,0.08)",
+                        "textStyle": {"color": "#ffffff"},
+                    },
+                    "grid": {"left": "2%", "right": "18%", "top": "4%", "bottom": "4%", "containLabel": True},
+                    "xAxis": {
+                        "type": "value",
+                        "axisLabel": {"color": _TEXT},
+                        "splitLine": {"lineStyle": {"color": _GRID}},
+                    },
+                    "yAxis": {
+                        "type": "category",
+                        "data": empresas_sel,
+                        "axisLabel": {"color": _TEXT},
+                    },
+                    "series": [{
+                        "type": "bar",
+                        "data": data_items,
+                        "barMaxWidth": 36,
+                        "emphasis": {"focus": "series"},
+                    }],
+                }
+
+                altura = max(360, len(empresas_sel) * 52)
+                st_echarts(options, height=f"{altura}px", width="100%", key="chart_contrataciones_empresa")
             else:
                 st.info('No se encontró información de contrataciones en el periodo seleccionado.')
         else:
