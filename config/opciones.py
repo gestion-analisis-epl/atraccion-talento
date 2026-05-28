@@ -116,6 +116,24 @@ PUESTOS_RECLUTAMIENTO = (
     "VIGILANTE"
 )
 
+MESES_ES = {
+    1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+    5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+    9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre",
+}
+
+MESES_CORTO = {
+    1: "Ene", 2: "Feb", 3: "Mar", 4: "Abr", 5: "May", 6: "Jun",
+    7: "Jul", 8: "Ago", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dic",
+}
+
+TRIMESTRES = {
+    1: {"nombre": "T1 (Enero-Marzo)",      "meses": [1, 2, 3]},
+    2: {"nombre": "T2 (Abril-Junio)",       "meses": [4, 5, 6]},
+    3: {"nombre": "T3 (Julio-Septiembre)",  "meses": [7, 8, 9]},
+    4: {"nombre": "T4 (Octubre-Diciembre)", "meses": [10, 11, 12]},
+}
+
 EMPRESAS_NOMBRE_CORTO = {
     'MARKETING EN PUBLICIDAD DE QUERETARO SA DE CV': 'MKT QRO',
     'SICMART SA DE CV': 'SICMART',

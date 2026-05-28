@@ -157,6 +157,13 @@ def mostrar_app():
         title="Comparación Anual",
         icon=":material/trending_up:"
     )
+    
+    eficiencia_teorica_page = st.Page(
+        page="pages/eficiencia_teorica.py",
+        title="Eficiencia Teórica",
+        icon=":material/trending_up:"
+    )
+    
     show_data_page = st.Page(
         page="pages/show_data.py",
         title="Mostrar Datos",
@@ -176,7 +183,7 @@ def mostrar_app():
     st.markdown(estilo_metricas() + estilo_dashboard(), unsafe_allow_html=True)
 
     pg = st.navigation({
-        "Análisis": [dashboard_page, comparativa_anual_page],
+        "Análisis": [dashboard_page, comparativa_anual_page, eficiencia_teorica_page],
         "Registros": [form_page, show_data_page, import_data_page],
         "Herramientas": [chatbot_page],
     })

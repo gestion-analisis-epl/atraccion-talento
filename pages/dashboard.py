@@ -5,7 +5,7 @@ from st_supabase_connection import SupabaseConnection
 from datetime import datetime, timedelta
 import calendar
 import pytz
-from utils.funciones_dashboard import calcular_dias_cobertura, obtener_rango_semana, obtener_rango_trimestre, filtrar_datos, empresas_map, meses_es, trimestres, MEXICO_TZ
+from utils.funciones_dashboard import calcular_dias_cobertura, obtener_rango_semana, obtener_rango_trimestre, filtrar_datos, filtrar_por_ejecutivo, empresas_map, meses_es, trimestres, MEXICO_TZ
 from utils.graficas_dashboard import (
     grafica_contrataciones_mes,
     grafica_contrataciones_por_ejecutivo,
@@ -25,9 +25,7 @@ require_login()
 
 conn = st.connection("supabase", type=SupabaseConnection)
 
-# ======================
-# FILTROS
-# =====================
+# Filtros
 
 data_actualizacion = (conn.table("registros_rh").select("ultima_actualizacion").order("ultima_actualizacion", desc=True).limit(1).execute())
 ultima_actualizacion = data_actualizacion.data[0]['ultima_actualizacion']
@@ -123,14 +121,7 @@ años_disponibles = sorted(años_disponibles, reverse=True)
 if not años_disponibles:
     años_disponibles = [datetime.now(MEXICO_TZ).year]
 
-# Obtener lista de ejecutivos únicos
-ejecutivos_disponibles = ["Todos"]
-if not df_altas.empty:
-    df_temp = df_altas.copy()
-    df_temp['primer_nombre'] = df_temp['responsable_alta'].str.split().str[0]
-    df_temp['primer_nombre'] = df_temp['primer_nombre'].replace({'MARTA': 'HELEN', 'LETICIA': 'LETY'})
-    ejecutivos_unicos = sorted(df_temp['primer_nombre'].dropna().unique().tolist())
-    ejecutivos_disponibles.extend(ejecutivos_unicos)
+ejecutivos_disponibles = ["Todos", "DIEGO", "HELEN", "LETY", "YULIANA"]
 
 # Interfaz de filtros
 col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns([2, 2, 2, 2, 2])
@@ -232,61 +223,12 @@ df_bajas_filtrado = filtrar_datos(df_bajas, 'fecha_baja', tipo_filtro, año_sele
 df_requisiciones_filtrado = filtrar_datos(df_vacantes, 'fecha_autorizacion', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_expedientes_filtrado = filtrar_datos(df_expedientes, 'fecha_ingreso_colaborador', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 
-# Aplicar filtro de ejecutivo si no es "Todos"
-def filtrar_por_ejecutivo(df, columna_responsable, ejecutivo_seleccionado):
-    """
-    Filtra un DataFrame por ejecutivo basándose en el primer nombre del responsable.
-    
-    Args:
-        df: DataFrame a filtrar
-        columna_responsable: Nombre de la columna que contiene el responsable
-        ejecutivo_seleccionado: Nombre del ejecutivo a filtrar
-    
-    Returns:
-        DataFrame filtrado o el mismo DataFrame si está vacío
-    """
-    if df.empty:
-        return df
-    
-    df_temp = df.copy()
-    df_temp['primer_nombre'] = df_temp[columna_responsable].str.split().str[0]
-    df_temp['primer_nombre'] = df_temp['primer_nombre'].replace({
-        'MARTA': 'HELEN', 
-        'LETICIA': 'LETY'
-    })
-    
-    return df_temp[df_temp['primer_nombre'] == ejecutivo_seleccionado]
-
-
-# Uso:
 if ejecutivo_seleccionado != "Todos":
-    df_altas_filtrado = filtrar_por_ejecutivo(
-        df_altas_filtrado, 
-        'responsable_alta', 
-        ejecutivo_seleccionado
-    )
+    df_altas_filtrado             = filtrar_por_ejecutivo(df_altas_filtrado,             'responsable_alta',      ejecutivo_seleccionado)
+    df_vacantes_cerradas_filtrado = filtrar_por_ejecutivo(df_vacantes_cerradas_filtrado, 'responsable_vacante',   ejecutivo_seleccionado)
+    df_requisiciones_filtrado     = filtrar_por_ejecutivo(df_requisiciones_filtrado,     'responsable_vacante',   ejecutivo_seleccionado)
+    df_expedientes_filtrado       = filtrar_por_ejecutivo(df_expedientes_filtrado,       'responsable_expediente', ejecutivo_seleccionado)
     
-    df_vacantes_cerradas_filtrado = filtrar_por_ejecutivo(
-        df_vacantes_cerradas_filtrado, 
-        'responsable_vacante', 
-        ejecutivo_seleccionado
-    )
-    
-    df_requisiciones_filtrado = filtrar_por_ejecutivo(
-        df_requisiciones_filtrado, 
-        'responsable_vacante', 
-        ejecutivo_seleccionado
-    )
-    
-    df_expedientes_filtrado = filtrar_por_ejecutivo(
-        df_expedientes_filtrado, 
-        'responsable_expediente', 
-        ejecutivo_seleccionado
-    )
-    
-# ======================
-# MÉTRICAS PRINCIPALES
-# ======================
 st.write("### :material/search_insights: Métricas principales")
 tab1, tab2, tab3, tab4, tab5= st.tabs([":material/search_insights: Métricas Principales", ":material/analytics: Análisis Visual", ":material/info: Información de Vacantes", ":material/article_person: Redes Pagadas", ":material/analytics: Promedio de Plaza y Puesto"])
 with tab1:
@@ -626,9 +568,6 @@ with tab1:
 
     st.divider()
 
-# ======================
-# GRAFICAS
-# ======================
 with tab2:
     st.write("### :material/analytics: Análisis visual")
     
