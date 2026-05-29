@@ -77,7 +77,9 @@ else:
     
 if todos_registros_vacantes:
     df_vacantes_cerradas = pd.DataFrame(todos_registros_vacantes)
-    df_vacantes_cerradas['fecha_cobertura'] = pd.to_datetime(df_vacantes_cerradas['fecha_cobertura'])
+    df_vacantes_cerradas['fecha_cobertura']    = pd.to_datetime(df_vacantes_cerradas['fecha_cobertura'])
+    df_vacantes_cerradas['fecha_autorizacion'] = pd.to_datetime(df_vacantes_cerradas['fecha_autorizacion'])
+    df_vacantes_cerradas['vacantes_contratados'] = pd.to_numeric(df_vacantes_cerradas['vacantes_contratados'], errors='coerce').fillna(0).astype(int)
 else:
     df_vacantes_cerradas = pd.DataFrame()
 
@@ -402,99 +404,69 @@ with tab1:
 
     col7, col8, col9 = st.columns([2, 2, 2])
 
+    def _promedio_dias_cerradas(df, area=None):
+        """Días promedio entre fecha_autorizacion y fecha_cobertura para vacantes finalizadas."""
+        mask = (df['vacantes_contratados'] > 0) & df['fecha_cobertura'].notna() & df['fecha_autorizacion'].notna()
+        if area:
+            mask &= df['funcion_area_vacante'] == area
+        df_f = df[mask].copy()
+        if df_f.empty:
+            return None
+        df_f = df_f[df_f['fecha_autorizacion'] != pd.Timestamp('1900-01-01')]
+        dias = (df_f['fecha_cobertura'] - df_f['fecha_autorizacion']).dt.days
+        dias = dias[dias >= 0]
+        return dias.mean() if not dias.empty else None
+
     # Vacantes Cerradas
     try:
-        if not df_vacantes_cerradas_filtrado.empty:
-            df_contratacion = df_vacantes_cerradas_filtrado[df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0].copy()
-            if not df_contratacion.empty:
-                df_contratacion['dias_calculados'] = df_contratacion.apply(calcular_dias_cobertura, axis=1)
-                promedio_contratacion = df_contratacion['dias_calculados'].dropna().mean()
-                #promedio_contratacion = df_contratacion.loc[df_contratacion['dias_calculados'] > 0, 'dias_calculados'].mean()
-                col7.metric(
-                label='Promedio en Vacantes finalizadas',
-                value=f"{round(promedio_contratacion)}" if pd.notna(promedio_contratacion) else "0",
-                border=True,
-                )
-                #st.dataframe(df_contratacion, hide_index=True)
-            else:
-                col7.metric(label='Promedio en Vacantes finalizadas', value="0", border=True)
-        else:
-            col7.metric(label='Promedio en Vacantes finalizadas', value="0", border=True)
+        promedio_contratacion = _promedio_dias_cerradas(df_vacantes_cerradas_filtrado)
+        col7.metric(
+            label='Promedio en Vacantes finalizadas',
+            value=f"{round(promedio_contratacion)}" if promedio_contratacion is not None else "0",
+            border=True,
+        )
     except Exception as e:
         st.error(f'Error al calcular contratación: {e}')
         col7.metric(label='Promedio en Vacantes finalizadas', value="Error", border=True)
-        
+
     # Vacantes ADMINISTRATIVAS cerradas
     try:
-        if not df_vacantes_cerradas_filtrado.empty:
-            # Filtrar solo las vacantes ADMINISTRATIVAS
-            df_administrativas = df_vacantes_cerradas_filtrado[
-                (df_vacantes_cerradas_filtrado['funcion_area_vacante'] == 'ADMINISTRATIVA') &
-                (df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0)
-            ].copy()
-
-            if not df_administrativas.empty:
-                df_administrativas['dias_calculados'] = df_administrativas.apply(calcular_dias_cobertura, axis=1)
-                promedio_cobertura = df_administrativas['dias_calculados'].dropna().mean()
-                #promedio_cobertura = df_administrativas.loc[df_administrativas['dias_calculados'] > 0, 'dias_calculados'].mean()
-                
-                if pd.notna(promedio_cobertura) and promedio_cobertura > 0:
-                    valor = 45 / promedio_cobertura*100
-                    ponderacion = f'{valor:.2f}%'
-                    delta_color = "inverse" if valor < 100 else "normal"
-                else:
-                    ponderacion = None
-
-                col8.metric(
-                    label='Promedio en Administrativas',
-                    value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
-                    border=True,
-                    delta=ponderacion,
-                    delta_color = delta_color
-                )
-            else:
-                col8.metric(label='Promedio en Administrativas', value="0", border=True)
+        promedio_cobertura = _promedio_dias_cerradas(df_vacantes_cerradas_filtrado, 'ADMINISTRATIVA')
+        if promedio_cobertura is not None and promedio_cobertura > 0:
+            valor = 45 / promedio_cobertura * 100
+            ponderacion = f'{valor:.2f}%'
+            delta_color = "inverse" if valor < 100 else "normal"
         else:
-            col8.metric(label='Promedio en Administrativas', value="0", border=True)
-
+            ponderacion = None
+            delta_color = "off"
+        col8.metric(
+            label='Promedio en Administrativas',
+            value=f"{round(promedio_cobertura)}" if promedio_cobertura is not None else "0",
+            border=True,
+            delta=ponderacion,
+            delta_color=delta_color,
+        )
     except Exception as e:
         st.error(f'Error al calcular cobertura: {e}')
         col8.metric(label='Promedio en Administrativas', value="Error", border=True)
 
     # Vacantes OPERATIVAS cerradas
     try:
-        if not df_vacantes_cerradas_filtrado.empty:
-            # Filtrar solo las vacantes OPERATIVAS
-            df_operativas = df_vacantes_cerradas_filtrado[
-                (df_vacantes_cerradas_filtrado['funcion_area_vacante'] == 'OPERATIVA') &
-                (df_vacantes_cerradas_filtrado['vacantes_contratados'] > 0)
-            ].copy()
-
-            if not df_operativas.empty:
-                df_operativas['dias_calculados'] = df_operativas.apply(calcular_dias_cobertura, axis=1)
-                promedio_cobertura = df_operativas['dias_calculados'].dropna().mean()
-                #promedio_cobertura = df_operativas.loc[df_operativas['dias_calculados'] > 0, 'dias_calculados'].mean()
-                
-                if pd.notna(promedio_cobertura) and promedio_cobertura > 0:
-                    valor = 15 / promedio_cobertura*100
-                    ponderacion = f'{valor:.2f}%'
-                    delta_color = "inverse" if valor < 100 else "normal"
-
-                else:
-                    ponderacion = None
-                
-                col9.metric(
-                    label='Promedio en Operativas',
-                    value=f"{round(promedio_cobertura)}" if pd.notna(promedio_cobertura) else "0",
-                    border=True,
-                    delta=ponderacion,
-                    delta_color = delta_color
-                )
-            else:
-                col9.metric(label='Promedio en Operativas', value="0", border=True)
+        promedio_cobertura = _promedio_dias_cerradas(df_vacantes_cerradas_filtrado, 'OPERATIVA')
+        if promedio_cobertura is not None and promedio_cobertura > 0:
+            valor = 15 / promedio_cobertura * 100
+            ponderacion = f'{valor:.2f}%'
+            delta_color = "inverse" if valor < 100 else "normal"
         else:
-            col9.metric(label='Promedio en Operativas', value="0", border=True)
-
+            ponderacion = None
+            delta_color = "off"
+        col9.metric(
+            label='Promedio en Operativas',
+            value=f"{round(promedio_cobertura)}" if promedio_cobertura is not None else "0",
+            border=True,
+            delta=ponderacion,
+            delta_color=delta_color,
+        )
     except Exception as e:
         st.error(f'Error al calcular cobertura: {e}')
         col9.metric(label='Promedio en Operativas', value="Error", border=True)

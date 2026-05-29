@@ -160,7 +160,7 @@ def mostrar_app():
     
     eficiencia_teorica_page = st.Page(
         page="pages/eficiencia_teorica.py",
-        title="Eficiencia Teórica",
+        title="KPIs Atracción de Talento",
         icon=":material/trending_up:"
     )
     
