@@ -6,6 +6,9 @@ from config.opciones import (
      ESTATUS_SOLICITUD, FASE_PROCESO, TIPO_RECLUTAMIENTO
 )
 from config.db_utils import insertar_maestra, insertar_alta, insertar_baja, insertar_vacante
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # ======================
 # ACTUALIZAR UNA VACANTE
@@ -160,7 +163,8 @@ def actualizar_vacante(conn):
                             st.success(":material/check_circle: Vacante actualizada correctamente")
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Error al actualizar: {e}")
+                            logger.error("Error al actualizar: %s", e, exc_info=True)
+                            st.error("Ocurrió un error inesperado. Por favor recarga la página.")
                 
                 with col_btn2:
                     if st.button(":material/cancel: Cancelar", width="stretch"):
@@ -176,7 +180,8 @@ def actualizar_vacante(conn):
             st.warning(":material/warning: No has seleccionado ningún registro. Haz clic en una fila de la tabla.")
     
     except Exception as e:
-        st.error(f'Error: {e}')
+        logger.error("Error: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
 
 # =====================
 # ACTUALIZAR UNA BAJA
@@ -259,7 +264,8 @@ def actualizar_baja(conn):
                         st.success(":material/check_circle: Baja actualizada correctamente")
                         st.rerun()
                     except Exception as e:
-                        st.error(f"Error al guardar: {e}")
+                        logger.error("Error al guardar: %s", e, exc_info=True)
+                        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
                         
             with col6_btn:
                 if st.button(":material/cancel: Cancelar", width="stretch"):
@@ -277,4 +283,5 @@ def actualizar_baja(conn):
             st.warning(":material/warning: No has seleccionado ningún registro. Haz clic en una fila de la tabla.")
     
     except Exception as e:
-        st.error(f'Error: {e}')
+        logger.error("Error: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")

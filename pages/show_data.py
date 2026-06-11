@@ -19,7 +19,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-consulta = st.selectbox("¿Qué deseas consultar?", ("Altas", "Bajas", "Vacantes", "Todos los registros"), index=None, placeholder="Selecciona una opción", key="consulta")
+consulta = st.selectbox("¿Qué deseas consultar?", ("Altas", "Bajas", "Vacantes"), index=None, placeholder="Selecciona una opción", key="consulta")
 
 # ======================
 # CONSULTAR UNA ALTA
@@ -49,21 +49,40 @@ if consulta == "Altas":
 # CONSULTAR UNA BAJA
 # ======================
 elif consulta == "Bajas":
-    response = conn.table("bajas").select("*").execute()
+    response = conn.table("bajas_sistema").select(
+        "id, no_colaborador, nombre, apellido_paterno, apellido_materno, "
+        "empresa, puesto, plaza, funcion_area, departamento, "
+        "fecha_ingreso, fecha_baja, motivo_baja, tipo_nomina, gerente, jefe"
+    ).gte("fecha_baja", "2024-01-01").execute()
     st.write("## Datos encontrados en Bajas")
     df_bajas = pd.DataFrame(response.data)
+    df_bajas["nombre_completo"] = (
+        df_bajas["nombre"].fillna("") + " " +
+        df_bajas["apellido_paterno"].fillna("") + " " +
+        df_bajas["apellido_materno"].fillna("")
+    ).str.strip()
     df_bajas = df_bajas.rename(columns={
-        "id": "ID", 
-        "empresa_baja": "Empresa",
-        "puesto_baja": "Puesto",
-        "plaza_baja": "Plaza",
+        "id": "ID",
+        "no_colaborador": "No. Colaborador",
+        "empresa": "Empresa",
+        "puesto": "Puesto",
+        "plaza": "Plaza",
+        "funcion_area": "Función de área",
+        "departamento": "Departamento",
         "fecha_ingreso": "Fecha de ingreso",
-        "fecha_baja": "Fecha de baja", 
-        "tipo_baja": "Tipo de baja",
-        "motivo_baja": "Motivo de la baja"
+        "fecha_baja": "Fecha de baja",
+        "motivo_baja": "Motivo de baja",
+        "tipo_nomina": "Tipo de nómina",
+        "gerente": "Gerente",
+        "jefe": "Jefe",
+        "nombre_completo": "Nombre",
     })
-    df_bajas = df_bajas.sort_values(by='ID', ascending=True)
-    st.dataframe(df_bajas, hide_index=True, column_order=["ID", "Empresa", "Puesto", "Plaza", "Fecha de ingreso","Fecha de baja", "Tipo de baja", "Motivo de la baja"])
+    df_bajas = df_bajas.sort_values(by="Fecha de baja", ascending=False)
+    st.dataframe(df_bajas, hide_index=True, column_order=[
+        "ID", "No. Colaborador", "Nombre", "Empresa", "Puesto", "Plaza",
+        "Función de área", "Departamento", "Tipo de nómina",
+        "Fecha de ingreso", "Fecha de baja", "Motivo de baja", "Gerente", "Jefe"
+    ])
 
 # ======================
 # CONSULTAR VACANTES
@@ -143,25 +162,5 @@ elif consulta == "Vacantes":
                                                              "Contratados", "Responsable", "Comentarios", "Tipo de reclutamiento",
                                                              "Medio de reclutamiento", "Fecha de cobertura", "Días de cobertura"])
 
-# ==============================
-# CONSULTAR TODOS LOS REGISTROS
-# ==============================    
-elif consulta == "Todos los registros":
-    response =conn.table("registros_rh").select("*").execute()
-    st.write("## Datos encontrados en Registros RH")
-    df_registros_rh = pd.DataFrame(response.data)
-    columns_name = {
-        "id": "ID",
-        "tipo_registro": "Tipo de registro",
-        "fecha_creacion": "Fecha de creación del registro",
-        "puesto": "Puesto",
-        "empresa": "Empresa",
-        "plaza": "Plaza",
-        "area": "Función de área"
-    }
-    df_registros_rh = df_registros_rh.rename(columns=columns_name)
-    st.dataframe(df_registros_rh, hide_index=True, column_order=["ID", "Tipo de registro", "Puesto", "Empresa",
-                                                                 "Plaza", "Función de área"] )
-    
 else:
     st.info("No se encontraron registros.")

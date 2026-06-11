@@ -3,9 +3,12 @@ from datetime import datetime, date
 import pytz
 from config.opciones import (
      PLAZAS, EMPRESAS, AREAS, CANALES_RECLUTAMIENTO, RESPONSABLES_RECLUTAMIENTO, 
-     ESTATUS_SOLICITUD, FASE_PROCESO, TIPO_RECLUTAMIENTO
+     ESTATUS_SOLICITUD, FASE_PROCESO, TIPO_RECLUTAMIENTO, PUESTOS
 )
 from config.db_utils import insertar_maestra, insertar_alta, insertar_baja, insertar_vacante
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # Zona horaria de México
 MEXICO_TZ = pytz.timezone('America/Mexico_City')
@@ -17,8 +20,8 @@ def registrar_alta(conn):
     st.write("### Formulario de altas")
     # Campos del formulario
     fecha_alta = st.date_input("Fecha de alta ", value=datetime.now(MEXICO_TZ).date(), key="fecha_alta")
-    puesto_alta = st.text_input("Puesto a registrar")
-    empresa_alta = st.selectbox("Empresa", EMPRESAS, index=2)    
+    puesto_alta = st.selectbox("Puesto a registrar", PUESTOS, index=0)
+    empresa_alta = st.selectbox("Empresa", EMPRESAS, index=6)    
     plaza_alta = st.selectbox("Plaza", PLAZAS, index=9)
     area_alta = st.selectbox("Función de área", AREAS, index=1)
     contratados_alta = st.number_input("Contrataciones", step=1, value=1)
@@ -48,7 +51,8 @@ def registrar_alta(conn):
                     "responsable_alta": responsable_alta,}, id_maestra)
                 st.toast("Alta registrada exitosamente", icon="✅")
             except Exception as e:
-                    st.error(f"Error al registrar la alta: {e}")
+                    logger.error("Error al registrar la alta: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
                     
 # ======================
 # REGISTRAR UNA BAJA
@@ -90,7 +94,8 @@ def registrar_baja(conn):
                 }, id_maestra)
                 st.toast("Baja registrada exitosamente", icon="✅")
             except Exception as e:
-                st.error(f"Error al registrar la baja: {e}")
+                logger.error("Error al registrar la baja: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
                 
 # ======================
 # REGISTRAR UNA VACANTE
@@ -158,5 +163,6 @@ def registrar_vacante(conn):
                 }, id_maestra)
                 st.success("Vacante registrada exitosamente", icon="✅")
             except Exception as e:
-                st.error(f"Error al registrar la vacante: {e}")
+                logger.error("Error al registrar la vacante: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
                 

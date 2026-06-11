@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime, timedelta
 from st_supabase_connection import SupabaseConnection
 from streamlit_echarts import st_echarts
 from utils.vars_efiencia import variables_actividades, variables_eficiencia
-from utils.funciones_dashboard import calcular_dias_cobertura
+from utils.funciones_dashboard import calcular_dias_cobertura, filtrar_datos, MEXICO_TZ
 from utils.auth import require_login
 
 require_login()
@@ -47,8 +48,6 @@ if not df_sla_raw.empty:
     df_sla_raw["dias"] = df_sla_raw.apply(calcular_dias_cobertura, axis=1)
     df_sla_raw = df_sla_raw[df_sla_raw["dias"].notna() & (df_sla_raw["dias"] >= 0)]
 
-df_sla = df_sla_raw.copy()
-
 SLA_OPERATIVA      = 15
 SLA_ADMINISTRATIVA = 45
 
@@ -73,6 +72,50 @@ st.markdown("""
     <span class="dash-badge">Atracción de Talento</span>
 </div>
 """, unsafe_allow_html=True)
+
+# Filtros para el tab SLA
+años_sla = sorted(
+    df_todas["fecha_cobertura"].dt.year.dropna().unique().astype(int).tolist(),
+    reverse=True
+) if not df_todas.empty else [datetime.now(MEXICO_TZ).year]
+
+from utils.funciones_dashboard import meses_es
+
+col_f1, col_f2, col_f3 = st.columns([2, 2, 2])
+with col_f1:
+    tipo_filtro_sla = st.selectbox(
+        ":material/filter_alt: Filtrar SLA por",
+        ["Todo el tiempo", "Por año", "Por mes", "Por rango de fechas"],
+        key="filtro_sla"
+    )
+
+año_sla = mes_sla = fecha_ini_sla = fecha_fin_sla = None
+
+if tipo_filtro_sla in ["Por año", "Por mes"]:
+    with col_f2:
+        año_sla = st.selectbox("Año", años_sla, key="año_sla")
+
+if tipo_filtro_sla == "Por mes" and año_sla:
+    with col_f3:
+        mes_nombre = st.selectbox("Mes", list(meses_es.values()), key="mes_sla",
+                                  index=datetime.now(MEXICO_TZ).month - 1)
+        mes_sla = list(meses_es.keys())[list(meses_es.values()).index(mes_nombre)]
+
+if tipo_filtro_sla == "Por rango de fechas":
+    with col_f2:
+        fecha_ini_sla = st.date_input("Desde", value=datetime.now(MEXICO_TZ).date() - timedelta(days=90),
+                                      format="DD/MM/YYYY", key="fi_sla")
+    with col_f3:
+        fecha_fin_sla = st.date_input("Hasta", value=datetime.now(MEXICO_TZ).date(),
+                                      format="DD/MM/YYYY", key="ff_sla")
+
+df_sla = filtrar_datos(
+    df_sla_raw, "fecha_cobertura", tipo_filtro_sla,
+    año=año_sla, mes=mes_sla,
+    fecha_inicio=fecha_ini_sla, fecha_fin=fecha_fin_sla
+)
+
+st.markdown("---")
 
 tab_eficiencia, tab_sla = st.tabs(["Eficiencia Teórica", "SLA de Cobertura"])
 

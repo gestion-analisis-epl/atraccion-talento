@@ -2,6 +2,9 @@ import streamlit as st
 import requests
 import json
 import re
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # Configuración
 N8N_WEBHOOK_URL = st.secrets.n8n_webhook.url
@@ -103,4 +106,5 @@ if prompt := st.chat_input("Escribe tu pregunta (ej: 'Grafica las vacantes por �
             except requests.exceptions.Timeout:
                 st.error("La base de datos tardó demasiado en responder. Intenta con una consulta más específica.")
             except Exception as e:
-                st.error(f"Hubo un problema al procesar la respuesta: {e}")
+                logger.error("Hubo un problema al procesar la respuesta: %s", e, exc_info=True)
+                st.error("Ocurrió un error inesperado. Por favor recarga la página.")

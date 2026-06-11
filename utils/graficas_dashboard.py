@@ -1,10 +1,12 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from utils.funciones_dashboard import empresas_map, calcular_dias_cobertura
+from utils.funciones_dashboard import calcular_dias_cobertura
 from config.opciones import EMPRESAS_NOMBRE_CORTO, MESES_ES
 from streamlit_echarts import st_echarts, JsCode
 from streamlit_pivot import st_pivot_table
+from utils.logger import get_logger
+logger = get_logger(__name__)
 
 # Paleta corporativa
 _TEAL    = "#14b8a6"
@@ -102,7 +104,8 @@ def tabla_dinamica_contrataciones(df_altas_filtrado):
         else:
             st.info('No se encontraron registros de contrataciones.')
     except Exception as e:
-        st.error(f'Error al mostrar tabla dinámica: {e}')
+        logger.error("Error en tabla_dinamica_contrataciones: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
 
 
 def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
@@ -184,7 +187,8 @@ def grafica_contrataciones_por_ejecutivo(df_altas_filtrado):
         else:
             st.info('No se encontró información de contrataciones.')
     except Exception as e:
-        st.error(f'Error al generar la gráfica de contrataciones por ejecutivo: {e}')
+        logger.error("Error en grafica_contrataciones_por_ejecutivo: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
 
 
 def grafica_contrataciones_por_empresa(df_altas_filtrado):
@@ -263,7 +267,8 @@ def grafica_contrataciones_por_empresa(df_altas_filtrado):
         else:
             st.info('No se encontró información de contrataciones.')
     except Exception as e:
-        st.error(f'Error al generar la gráfica de contrataciones por empresa: {e}')
+        logger.error("Error en grafica_contrataciones_por_empresa: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
 
 
 def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
@@ -315,7 +320,8 @@ def grafica_contrataciones_por_medio_reclutamiento(df_altas_filtrado):
         else:
             st.info('No se encontró información de contrataciones.')
     except Exception as e:
-        st.error(f'Error al generar la gráfica de contrataciones por medio: {e}')
+        logger.error("Error en grafica_contrataciones_por_medio_reclutamiento: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
 
 
 def grafica_vacantes_por_empresa(df_vacantes):
@@ -344,7 +350,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                     "fase_proceso": "Fase de proceso",
                 })
                 df_grafico = df_detalle.copy()
-                df_grafico['Empresa'] = df_grafico['Empresa'].replace(empresas_map)
+                df_grafico['Empresa'] = df_grafico['Empresa'].replace(EMPRESAS_NOMBRE_CORTO)
                 df_detalle['Días de cobertura'] = df_detalle['Días de cobertura'].round(0).astype(int)
                 df_detalle = df_detalle.sort_values(by='Días de cobertura', ascending=False)
                 df_detalle.loc[df_detalle['confidencial'] == 'SI', 'Puesto'] = 'VACANTE'
@@ -399,7 +405,8 @@ def grafica_vacantes_por_empresa(df_vacantes):
         else:
             st.info('No se encontraron registros de vacantes.')
     except Exception as e:
-        st.error(f'Error al generar la gráfica de vacantes por empresa: {e}')
+        logger.error("Error en grafica_vacantes_por_empresa: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
 
 
 def grafica_vacantes_por_area(df_vacantes):
@@ -446,7 +453,8 @@ def grafica_vacantes_por_area(df_vacantes):
         else:
             st.info('No se encontraron registros de vacantes.')
     except Exception as e:
-        st.error(f'Error al generar la información de vacantes por área: {e}')
+        logger.error("Error en grafica_vacantes_por_area: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
 
 
 def grafica_contrataciones_mes(df_altas_filtrado):
@@ -458,7 +466,7 @@ def grafica_contrataciones_mes(df_altas_filtrado):
                 df['mes_alta'] = df['fecha_alta'].dt.month.map(MESES_ES)
                 meses_ordenados = list(MESES_ES.values())
                 df['mes_alta'] = pd.Categorical(df['mes_alta'], categories=meses_ordenados, ordered=True)
-                resumen = df.groupby('mes_alta', as_index=False)['contratados_alta'].sum()
+                resumen = df.groupby('mes_alta', as_index=False, observed=True)['contratados_alta'].sum()
 
                 options = {
                     "color": [_TEAL],
@@ -486,7 +494,8 @@ def grafica_contrataciones_mes(df_altas_filtrado):
         else:
             st.info('No se encontró información de contrataciones.')
     except Exception as e:
-        st.error(f'Error al generar la gráfica de contrataciones por mes: {e}')
+        logger.error("Error en grafica_contrataciones_mes: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
 
 
 def grafica_embudo_fase_proceso(df_vacantes_filtrado):
@@ -524,7 +533,8 @@ def grafica_embudo_fase_proceso(df_vacantes_filtrado):
         else:
             st.info('No se encontraron registros de vacantes.')
     except Exception as e:
-        st.error(f'Error al generar la gráfica de embudo por fase de proceso: {e}')
+        logger.error("Error en grafica_embudo_fase_proceso: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
 
 
 def contrataciones_area_redes_pagadas(df_altas_filtrado):
@@ -549,8 +559,8 @@ def contrataciones_area_redes_pagadas(df_altas_filtrado):
                 df_op_redes = df_op[df_op['medio_reclutamiento_alta'] == 'REDES PAGADAS']
                 col4.metric('Contrataciones Operativas Redes Pagadas', df_op_redes['contratados_alta'].sum())
 
-                df_area = df_op.groupby('mes_alta')['contratados_alta'].sum().reset_index()
-                df_bar  = df_redes.groupby('mes_alta')['contratados_alta'].sum().reset_index()
+                df_area = df_op.groupby('mes_alta', observed=True)['contratados_alta'].sum().reset_index()
+                df_bar  = df_redes.groupby('mes_alta', observed=True)['contratados_alta'].sum().reset_index()
 
                 options = {
                     "color": [_TEAL, _INDIGO],
@@ -589,7 +599,8 @@ def contrataciones_area_redes_pagadas(df_altas_filtrado):
         else:
             st.info('No se encontraron registros de contrataciones.')
     except Exception as e:
-        st.error(f'Error al generar la información de contrataciones por área: {e}')
+        logger.error("Error en contrataciones_area_redes_pagadas: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
 
 
 def promedio_plaza_puesto(df_vacantes_cerradas_filtrado):
@@ -637,4 +648,5 @@ def promedio_plaza_puesto(df_vacantes_cerradas_filtrado):
             return plaza_mas_alta, promedio_general, tabla_plaza, tabla_puesto
 
     except Exception as e:
-        st.error(f'Error al calcular promedio de plaza y puesto: {e}')
+        logger.error("Error en promedio_plaza_puesto: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")

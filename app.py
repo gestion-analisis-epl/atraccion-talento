@@ -3,6 +3,9 @@ import bcrypt
 from datetime import datetime, timedelta, timezone
 from streamlit_cookies_manager import EncryptedCookieManager
 from styles.styles import estilo_metricas, estilo_dashboard
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 st.set_page_config(page_title="Atraccion de Talento", layout="wide", page_icon=":material/menu:")
 
@@ -25,7 +28,8 @@ def obtener_usuarios():
     try:
         return dict(st.secrets["passwords"])
     except Exception as e:
-        st.error(f"Error al cargar credenciales: {e}")
+        logger.error("Error al cargar credenciales: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
         return {}
 
 def verificar_login(usuario, password):
@@ -134,9 +138,17 @@ def mostrar_login():
                 else:
                     st.error(":material/cancel: Usuario o contraseña incorrectos")
 
+NOMBRES_DISPLAY = {
+    "atepl": "Atracción de Talento",
+    "admin": "Administrador",
+    "user": "Equipo de Reclutamiento",
+    "atracciontalento": "Atracción de Talento",
+}
+
 def mostrar_app():
-    usuario  = st.session_state.get("usuario", "")
-    iniciales = usuario[:2].upper() if usuario else "?"
+    usuario        = st.session_state.get("usuario", "")
+    nombre_display = NOMBRES_DISPLAY.get(usuario, usuario)
+    iniciales      = nombre_display[:2].upper() if nombre_display else "?"
 
     # Logo fijado arriba del sidebar
     with st.sidebar:
@@ -236,7 +248,7 @@ def mostrar_app():
         </style>
         <div class="user-card">
             <div class="user-avatar">{iniciales}</div>
-            <span class="user-name">{usuario}</span>
+            <span class="user-name">{nombre_display}</span>
         </div>
         """, unsafe_allow_html=True)
 

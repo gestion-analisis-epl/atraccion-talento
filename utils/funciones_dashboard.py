@@ -9,21 +9,6 @@ MEXICO_TZ = pytz.timezone('America/Mexico_City')
 meses_es = MESES_ES
 trimestres = TRIMESTRES
 
-empresas_map = {
-    "CORPORATIVO PUBLICITARIO MAO SA DE CV": "MAO",
-    "DRAUBEN SA DE CV": "DRAUBEN",
-    "ESPECIALISTAS PROFESIONALES DE LEON SA DE CV": "EPL",
-    "F2 CONSULTING GROUP SA DE CV": "F2",
-    "FICORMA SA DE CV": "FICORMA",
-    "KRONOS AMBIENTAL SAPI DE CV": "KRONOS",
-    "MARKETING EN PUBLICIDAD DE QUERETARO SA DE CV": "MKT QRO",
-    "MONTAJE SUPERVISION Y CONSTRUCCION SA DE CV": "MSC",
-    "LUMINA PANTALLAS DIGITALES SA DE CV": "LUMINA",
-    "SERVICIOS DE ANUNCIOS PUBLICITARIOS SA DE CV": "SAP",
-    "SICMART SA DE CV": "SICMART",
-    "THE BEST MARKETING SA DE CV": "BEST MKT",
-    "VINCI GERENCIA ORGANIZACIONAL SA DE CV": "VINCI",
-}
 
 
 def calcular_dias_cobertura(row):
@@ -111,13 +96,35 @@ def filtrar_datos(df, fecha_columna, tipo_filtro, año=None, mes=None, semana=No
     return df
 
 
+_ALIAS_EJECUTIVO = {
+    'MARTA':   'HELEN',
+    'ELENA':   'HELEN',
+    'LETICIA': 'LETY',
+}
+
+def promedio_dias_cerradas(df, area=None):
+    """Días promedio entre fecha_autorizacion y fecha_cobertura para vacantes finalizadas."""
+    mask = (df['vacantes_contratados'] > 0) & df['fecha_cobertura'].notna() & df['fecha_autorizacion'].notna()
+    if area:
+        mask &= df['funcion_area_vacante'] == area
+    df_f = df[mask].copy()
+    if df_f.empty:
+        return None
+    df_f = df_f[df_f['fecha_autorizacion'] != pd.Timestamp('1900-01-01')]
+    dias = (df_f['fecha_cobertura'] - df_f['fecha_autorizacion']).dt.days
+    dias = dias[dias >= 0]
+    return dias.mean() if not dias.empty else None
+
+
 def filtrar_por_ejecutivo(df, columna_responsable, ejecutivo):
-    """Filtra df por el primer nombre del responsable, normalizando alias."""
+    """Filtra df buscando el ejecutivo en todas las palabras del nombre."""
     if df.empty:
         return df
-    df_temp = df.copy()
-    df_temp['primer_nombre'] = df_temp[columna_responsable].str.split().str[0].replace({
-        'MARTA': 'HELEN',
-        'LETICIA': 'LETY',
-    })
-    return df_temp[df_temp['primer_nombre'] == ejecutivo]
+
+    def _match(nombre):
+        for palabra in str(nombre).upper().split():
+            if _ALIAS_EJECUTIVO.get(palabra, palabra) == ejecutivo:
+                return True
+        return False
+
+    return df[df[columna_responsable].apply(_match)]

@@ -6,6 +6,9 @@ import pytz
 import traceback
 
 from utils.auth import require_login
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 from config.db_utils import (
     insertar_maestra, 
     insertar_vacante, 
@@ -76,7 +79,8 @@ if subir_archivo and archivo is not None:
         st.session_state["archivo_ok"] = True
         st.success("Archivo cargado correctamente. Revisa la vista previa y confirma.")
     except Exception as e:
-        st.error(f"Error al leer el archivo: {e}")
+        logger.error("Error al leer el archivo: %s", e, exc_info=True)
+        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
         st.code(traceback.format_exc())
 
 elif subir_archivo and archivo is None:
@@ -240,5 +244,6 @@ if st.session_state.get("archivo_ok", False):
                         st.info(f"... y {len(errores) - 10} más.")
 
         except Exception as e:
-            st.error(f"Error general en la importación: {e}")
+            logger.error("Error general en la importación: %s", e, exc_info=True)
+            st.error("Ocurrió un error inesperado. Por favor recarga la página.")
             st.code(traceback.format_exc())
