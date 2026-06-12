@@ -51,8 +51,8 @@ def registrar_alta(conn):
                     "responsable_alta": responsable_alta,}, id_maestra)
                 st.toast("Alta registrada exitosamente", icon="✅")
             except Exception as e:
-                    logger.error("Error al registrar la alta: %s", e, exc_info=True)
-        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
+                logger.error("Error al registrar la alta: %s", e, exc_info=True)
+                st.error("Ocurrió un error inesperado. Por favor recarga la página.")
                     
 # ======================
 # REGISTRAR UNA BAJA
@@ -95,7 +95,7 @@ def registrar_baja(conn):
                 st.toast("Baja registrada exitosamente", icon="✅")
             except Exception as e:
                 logger.error("Error al registrar la baja: %s", e, exc_info=True)
-        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
+                st.error("Ocurrió un error inesperado. Por favor recarga la página.")
                 
 # ======================
 # REGISTRAR UNA VACANTE
@@ -164,5 +164,5 @@ def registrar_vacante(conn):
                 st.success("Vacante registrada exitosamente", icon="✅")
             except Exception as e:
                 logger.error("Error al registrar la vacante: %s", e, exc_info=True)
-        st.error("Ocurrió un error inesperado. Por favor recarga la página.")
+                st.error("Ocurrió un error inesperado. Por favor recarga la página.")
                 
