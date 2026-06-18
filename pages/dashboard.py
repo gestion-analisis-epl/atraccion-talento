@@ -81,8 +81,24 @@ data_bajas = (conn.table("bajas_sistema")
               .execute())
 todos_registros_bajas = data_bajas.data
 
-data_expedientes = (conn.table("expedientes").select("*").execute())
-todos_registros_expedientes = data_expedientes.data
+data_catalogo_docs = conn.table("catalogo_documentos").select("*").execute()
+data_colaboradores = conn.table("colaboradores_activos").select("*").execute()
+
+# archivos_expedientes supera 1 000 filas — se pagina para traer todos los registros
+_arch_rows, _arch_offset = [], 0
+while True:
+    _page = (
+        conn.table("archivos_expedientes")
+        .select("id_colaborador, id_documento, estatus_pdf")
+        .range(_arch_offset, _arch_offset + 999)
+        .execute()
+    )
+    if not _page.data:
+        break
+    _arch_rows.extend(_page.data)
+    if len(_page.data) < 1000:
+        break
+    _arch_offset += 1000
 
 # Preparar DataFrames
 if todos_registros_vacantes:
@@ -108,11 +124,9 @@ if todos_registros_bajas:
 else:
     df_bajas = pd.DataFrame()
     
-if todos_registros_expedientes:
-    df_expedientes = pd.DataFrame(todos_registros_expedientes)
-    df_expedientes['fecha_ingreso_colaborador'] = pd.to_datetime(df_expedientes['fecha_ingreso_colaborador'])
-else:
-    df_expedientes = pd.DataFrame()
+df_catalogo_docs = pd.DataFrame(data_catalogo_docs.data) if data_catalogo_docs.data else pd.DataFrame()
+df_colaboradores = pd.DataFrame(data_colaboradores.data) if data_colaboradores.data else pd.DataFrame()
+df_archivos      = pd.DataFrame(_arch_rows) if _arch_rows else pd.DataFrame()
 
 # Obtener años disponibles
 años_disponibles = []
@@ -236,14 +250,11 @@ df_vacantes_cerradas_filtrado = filtrar_datos(df_vacantes_cerradas, 'fecha_cober
 df_altas_filtrado = filtrar_datos(df_altas, 'fecha_alta', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_bajas_filtrado = filtrar_datos(df_bajas, 'fecha_baja', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 df_requisiciones_filtrado = filtrar_datos(df_vacantes, 'fecha_autorizacion', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
-df_expedientes_filtrado = filtrar_datos(df_expedientes, 'fecha_ingreso_colaborador', tipo_filtro, año_seleccionado, mes_seleccionado, semana_seleccionada, trimestre_seleccionado, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 
 if ejecutivo_seleccionado != "Todos":
     df_altas_filtrado             = filtrar_por_ejecutivo(df_altas_filtrado,             'responsable_alta',      ejecutivo_seleccionado)
     df_vacantes_cerradas_filtrado = filtrar_por_ejecutivo(df_vacantes_cerradas_filtrado, 'responsable_vacante',   ejecutivo_seleccionado)
     df_requisiciones_filtrado     = filtrar_por_ejecutivo(df_requisiciones_filtrado,     'responsable_vacante',   ejecutivo_seleccionado)
-    df_expedientes_filtrado       = filtrar_por_ejecutivo(df_expedientes_filtrado,       'responsable_expediente', ejecutivo_seleccionado)
-    
 vacantes_excluir = (
     (df_vacantes['estatus_solicitud'] == 'CANCELADO') |
     (df_vacantes['estatus_solicitud'] == 'FINALIZADO') |
@@ -252,7 +263,7 @@ vacantes_excluir = (
 ) if not df_vacantes.empty else pd.Series(dtype=bool)
 
 st.write("### :material/search_insights: Métricas principales")
-tab1, tab2, tab3, tab4, tab5= st.tabs([":material/search_insights: Métricas Principales", ":material/analytics: Análisis Visual", ":material/info: Información de Vacantes", ":material/article_person: Redes Pagadas", ":material/analytics: Promedio de Plaza y Puesto"])
+tab1, tab6, tab2, tab3, tab4, tab5 = st.tabs([":material/search_insights: Métricas Principales", ":material/files: Expedientes", ":material/analytics: Análisis Visual", ":material/info: Información de Vacantes", ":material/article_person: Redes Pagadas", ":material/analytics: Promedio de Plaza y Puesto"])
 with tab1:
     col1, col2, col3 = st.columns([2, 2, 2])
 
@@ -475,42 +486,6 @@ with tab1:
         col9.metric(label='Promedio en Operativas', value="Error", border=True)
         
     st.divider()
-    
-    with st.expander("Expedientes"):
-
-        st.write("### :material/files: Expedientes de Colaboradores")
-        col10, col11, col12 = st.columns([2, 2, 2])
-        # Expedientes completos
-        if not df_expedientes_filtrado.empty:
-            expedientes_totales = len(df_expedientes_filtrado)
-        else:
-            expedientes_totales = 0
-            with col10: st.info(f'No hay expedientes registrados en el período seleccionado.')
-        col10.metric(label='Expedientes Totales', value=expedientes_totales)
-
-        if not df_expedientes_filtrado.empty:
-            expedientes_completos = len(df_expedientes_filtrado[df_expedientes_filtrado['estatus_alta'] == "ENTREGADO"])
-        else:
-            expedientes_completos = 0
-            with col11: st.info(f'No hay expedientes registrados en el período seleccionado.')
-
-        if expedientes_totales > 0:
-            col11.metric(label='Expedientes Completos', value=expedientes_completos, delta=f"{expedientes_completos/expedientes_totales*100:.2f}%", delta_color="inverse")
-        else:
-            col11.metric(label='Expedientes Completos', value=expedientes_completos)
-
-        if not df_expedientes_filtrado.empty:
-            expedientes_faltantes = len(df_expedientes_filtrado[df_expedientes_filtrado['estatus_alta'] == "PENDIENTE"])
-        else:
-            expedientes_faltantes = 0
-            with col12: st.info(f'No hay expedientes registrados en el período seleccionado.')
-
-        if expedientes_totales > 0:
-            col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes, delta=f"{expedientes_faltantes/expedientes_totales*100:.2f}%", delta_color="inverse")
-        else:
-            col12.metric(label='Expedientes Faltantes', value=expedientes_faltantes)
-
-    st.divider()
 
     st.write("### :material/docs: Detalle de las contrataciones")
     try:
@@ -587,3 +562,167 @@ with tab4:
 with tab5:
     st.write('### Detalle de Promedio de Días de Cobertura por Plaza y Puesto')
     promedio_plaza_puesto(df_vacantes_cerradas_filtrado)
+
+with tab6:
+    st.write("### :material/files: Expedientes de Colaboradores")
+
+    docs_requeridos_ids = (
+        df_catalogo_docs[df_catalogo_docs['requerido'] == True]['id'].tolist()
+        if not df_catalogo_docs.empty else []
+    )
+    n_docs_requeridos = len(docs_requeridos_ids)
+
+    colaboradores_ids = (
+        df_colaboradores[df_colaboradores['activo'] == True]['id_colaborador'].tolist()
+        if not df_colaboradores.empty else []
+    )
+    n_colaboradores = len(colaboradores_ids)
+
+    if not df_archivos.empty and n_docs_requeridos > 0 and n_colaboradores > 0:
+        df_req = df_archivos[
+            (df_archivos['id_colaborador'].isin(colaboradores_ids)) &
+            (df_archivos['id_documento'].isin(docs_requeridos_ids))
+        ].copy()
+        docs_ok_por_colab = (
+            df_req[df_req['estatus_pdf'] == True]
+            .groupby('id_colaborador')['id_documento']
+            .nunique()
+        )
+        n_completos = int((docs_ok_por_colab >= n_docs_requeridos).sum())
+    else:
+        n_completos = 0
+
+    n_faltantes   = n_colaboradores - n_completos
+    pct_completos = (n_completos / n_colaboradores * 100) if n_colaboradores > 0 else 0.0
+
+    col10, col11, col12, col13 = st.columns(4)
+    col10.metric(label='Expedientes Totales',     value=n_colaboradores)
+    col11.metric(label='Expedientes Completos',   value=n_completos,  delta=f"{pct_completos:.1f}%")
+    col12.metric(label='Expedientes Faltantes',   value=n_faltantes,  delta=f"{100 - pct_completos:.1f}%", delta_color="inverse")
+    col13.metric(label='% Expedientes Completos', value=f"{pct_completos:.1f}%")
+
+    st.divider()
+
+    if not df_colaboradores.empty and not df_catalogo_docs.empty and not df_archivos.empty:
+        df_colab_activos = df_colaboradores[df_colaboradores['activo'] == True].copy()
+        df_docs_req      = df_catalogo_docs[df_catalogo_docs['requerido'] == True].copy()
+
+        docs_entregados = (
+            df_archivos[
+                df_archivos['id_documento'].isin(docs_requeridos_ids) &
+                df_archivos['id_colaborador'].isin(colaboradores_ids) &
+                (df_archivos['estatus_pdf'] == True)
+            ][['id_colaborador', 'id_documento']]
+            .drop_duplicates()
+        )
+
+        docs_por_colab = docs_entregados.groupby('id_colaborador')['id_documento'].nunique()
+        completos_ids  = set(docs_por_colab[docs_por_colab >= n_docs_requeridos].index)
+        df_colab_activos['Estatus'] = df_colab_activos['id_colaborador'].apply(
+            lambda x: 'COMPLETO' if x in completos_ids else 'INCOMPLETO'
+        )
+
+        entregados_set = set(zip(docs_entregados['id_colaborador'], docs_entregados['id_documento']))
+        doc_ids        = df_docs_req['id'].tolist()
+        doc_nombres    = df_docs_req['nombre_documento'].tolist()
+
+        df_wide = df_colab_activos[[
+            'id_colaborador', 'nombre_completo', 'empresa', 'plaza', 'departamento', 'puesto', 'Estatus'
+        ]].copy()
+
+        for doc_id, doc_nombre in zip(doc_ids, doc_nombres):
+            df_wide[doc_nombre] = df_wide['id_colaborador'].apply(
+                lambda cid, did=doc_id: (cid, did) in entregados_set
+            )
+
+        df_wide = (
+            df_wide
+            .drop(columns=['id_colaborador'])
+            .sort_values('nombre_completo', ascending=True)
+            .reset_index(drop=True)
+            .rename(columns={
+                'nombre_completo': 'Colaborador',
+                'empresa':         'Empresa',
+                'plaza':           'Plaza',
+                'departamento':    'Departamento',
+                'puesto':          'Puesto',
+            })
+        )
+
+        def _reset_exp_page():
+            st.session_state['exp_page'] = 0
+
+        col_busq, col_fest, col_femp = st.columns([3, 1, 2])
+        with col_busq:
+            busqueda = st.text_input(
+                ":material/search: Buscar",
+                placeholder="Colaborador o empresa...",
+                key="exp_busqueda",
+                on_change=_reset_exp_page,
+            )
+        with col_fest:
+            filtro_estatus = st.selectbox(
+                "Estatus",
+                ["Todos", "COMPLETO", "INCOMPLETO"],
+                key="exp_filtro_estatus",
+                on_change=_reset_exp_page,
+            )
+        with col_femp:
+            empresas_disp = sorted(df_wide['Empresa'].dropna().unique().tolist())
+            filtro_empresa = st.multiselect(
+                "Empresa",
+                empresas_disp,
+                key="exp_filtro_empresa",
+                on_change=_reset_exp_page,
+            )
+
+        if busqueda.strip():
+            termino = busqueda.strip()
+            mask = (
+                df_wide['Colaborador'].str.contains(termino, case=False, na=False) |
+                df_wide['Empresa'].str.contains(termino, case=False, na=False)
+            )
+            df_wide = df_wide[mask].reset_index(drop=True)
+        if filtro_estatus != "Todos":
+            df_wide = df_wide[df_wide['Estatus'] == filtro_estatus].reset_index(drop=True)
+        if filtro_empresa:
+            df_wide = df_wide[df_wide['Empresa'].isin(filtro_empresa)].reset_index(drop=True)
+
+        PAGE_SIZE   = 15
+        total_filas = len(df_wide)
+        total_pags  = max(1, -(-total_filas // PAGE_SIZE))
+
+        if 'exp_page' not in st.session_state:
+            st.session_state['exp_page'] = 0
+        st.session_state['exp_page'] = min(st.session_state['exp_page'], total_pags - 1)
+
+        col_prev, col_info, col_next = st.columns([1, 4, 1])
+        with col_prev:
+            if st.button('← Anterior', key='exp_prev', disabled=st.session_state['exp_page'] == 0):
+                st.session_state['exp_page'] -= 1
+                st.rerun()
+        with col_info:
+            inicio = st.session_state['exp_page'] * PAGE_SIZE + 1
+            fin    = min(inicio + PAGE_SIZE - 1, total_filas)
+            st.caption(f"Mostrando {inicio}–{fin} de {total_filas} colaboradores · Página {st.session_state['exp_page'] + 1} de {total_pags}")
+        with col_next:
+            if st.button('Siguiente →', key='exp_next', disabled=st.session_state['exp_page'] >= total_pags - 1):
+                st.session_state['exp_page'] += 1
+                st.rerun()
+
+        start   = st.session_state['exp_page'] * PAGE_SIZE
+        df_page = df_wide.iloc[start : start + PAGE_SIZE]
+
+        col_config = {
+            doc: st.column_config.CheckboxColumn(doc, disabled=True)
+            for doc in doc_nombres
+        }
+
+        st.dataframe(
+            df_page,
+            hide_index=True,
+            use_container_width=True,
+            column_config=col_config,
+        )
+    else:
+        st.info("No hay datos de expedientes disponibles.")
