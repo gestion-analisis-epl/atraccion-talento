@@ -4,6 +4,7 @@ import pandas as pd
 import datetime as dt
 import pytz
 from utils.auth import require_login
+from utils.tabla_interactiva import render_interactive_table
 
 # Requerir autenticación antes de mostrar cualquier contenido
 require_login()
@@ -42,8 +43,8 @@ if consulta == "Altas":
     }
     df_altas = df_altas.rename(columns=columns_names)
     df_altas = df_altas.sort_values(by='ID', ascending=True)
-    st.dataframe(df_altas, hide_index=True, column_order=["ID", "Fecha de alta", "Empresa", "Puesto", "Plaza",
-                                                          "Función de área", "Contratados", "Medio de reclutamiento", "Responsable"])
+    render_interactive_table(df_altas, columns=["ID", "Fecha de alta", "Empresa", "Puesto", "Plaza",
+                                               "Función de área", "Contratados", "Medio de reclutamiento", "Responsable"], height=620)
 
 # ======================
 # CONSULTAR UNA BAJA
@@ -78,11 +79,11 @@ elif consulta == "Bajas":
         "nombre_completo": "Nombre",
     })
     df_bajas = df_bajas.sort_values(by="Fecha de baja", ascending=False)
-    st.dataframe(df_bajas, hide_index=True, column_order=[
+    render_interactive_table(df_bajas, columns=[
         "ID", "No. Colaborador", "Nombre", "Empresa", "Puesto", "Plaza",
         "Función de área", "Departamento", "Tipo de nómina",
         "Fecha de ingreso", "Fecha de baja", "Motivo de baja", "Gerente", "Jefe"
-    ])
+    ], height=620)
 
 # ======================
 # CONSULTAR VACANTES
@@ -156,11 +157,11 @@ elif consulta == "Vacantes":
     confidencial = df_vacantes['confidencial'] != 'SI'
     df_vacantes = df_vacantes[confidencial]
     df_vacantes = df_vacantes.sort_values(by='ID del Sistema', ascending=False)
-    st.dataframe(df_vacantes, hide_index=True, column_order=["ID del Sistema", "Fecha de solicitud", "Tipo de solicitud", "Estatus de solicitud",
-                                                             "Fase del proceso", "Fecha del avance", "Fecha de autorización",
-                                                             "Puesto", "Plaza", "Empresa", "Función de área", "Vacantes solicitadas",
-                                                             "Contratados", "Responsable", "Comentarios", "Tipo de reclutamiento",
-                                                             "Medio de reclutamiento", "Fecha de cobertura", "Días de cobertura"])
+    render_interactive_table(df_vacantes, columns=["ID del Sistema", "Fecha de solicitud", "Tipo de solicitud", "Estatus de solicitud",
+                                                   "Fase del proceso", "Fecha del avance", "Fecha de autorización",
+                                                   "Puesto", "Plaza", "Empresa", "Función de área", "Vacantes solicitadas",
+                                                   "Contratados", "Responsable", "Comentarios", "Tipo de reclutamiento",
+                                                   "Medio de reclutamiento", "Fecha de cobertura", "Días de cobertura"], height=650)
 
 else:
     st.info("No se encontraron registros.")

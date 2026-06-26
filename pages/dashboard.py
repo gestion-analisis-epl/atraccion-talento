@@ -19,6 +19,8 @@ from utils.graficas_dashboard import (
 )
 from utils.auth import require_login
 from utils.logger import get_logger
+from utils.expedientes_dashboard import cargar_datos_expedientes, render_tab_expedientes
+from utils.tabla_interactiva import render_interactive_table
 
 logger = get_logger(__name__)
 
@@ -81,24 +83,7 @@ data_bajas = (conn.table("bajas_sistema")
               .execute())
 todos_registros_bajas = data_bajas.data
 
-data_catalogo_docs = conn.table("catalogo_documentos").select("*").execute()
-data_colaboradores = conn.table("colaboradores_activos").select("*").execute()
-
-# archivos_expedientes supera 1 000 filas — se pagina para traer todos los registros
-_arch_rows, _arch_offset = [], 0
-while True:
-    _page = (
-        conn.table("archivos_expedientes")
-        .select("id_colaborador, id_documento, estatus_pdf")
-        .range(_arch_offset, _arch_offset + 999)
-        .execute()
-    )
-    if not _page.data:
-        break
-    _arch_rows.extend(_page.data)
-    if len(_page.data) < 1000:
-        break
-    _arch_offset += 1000
+df_catalogo_docs, df_colaboradores, df_archivos = cargar_datos_expedientes(conn)
 
 # Preparar DataFrames
 if todos_registros_vacantes:
@@ -124,10 +109,6 @@ if todos_registros_bajas:
 else:
     df_bajas = pd.DataFrame()
     
-df_catalogo_docs = pd.DataFrame(data_catalogo_docs.data) if data_catalogo_docs.data else pd.DataFrame()
-df_colaboradores = pd.DataFrame(data_colaboradores.data) if data_colaboradores.data else pd.DataFrame()
-df_archivos      = pd.DataFrame(_arch_rows) if _arch_rows else pd.DataFrame()
-
 # Obtener años disponibles
 años_disponibles = []
 if not df_vacantes.empty:
@@ -504,13 +485,9 @@ with tab1:
                 'confidencial': 'Confidencial',
             })
             df.loc[df['Confidencial'] == 'SI', 'Puesto'] = 'VACANTE'
-            st.dataframe(df,
-                        column_config={
-                            "id": None,
-                            "id_registro": None,
-                            "contratados_alta": None, 
-                            'Confidencial': None,
-                        }, hide_index=True, width="stretch")
+            _cols_hide = ["id", "id_registro", "Confidencial"]
+            df_show = df.drop(columns=[c for c in _cols_hide if c in df.columns])
+            render_interactive_table(df_show, height=480)
         else:
             st.write("No hay datos disponibles para mostrar.")
     except Exception as e:
@@ -563,166 +540,6 @@ with tab5:
     st.write('### Detalle de Promedio de Días de Cobertura por Plaza y Puesto')
     promedio_plaza_puesto(df_vacantes_cerradas_filtrado)
 
+
 with tab6:
-    st.write("### :material/files: Expedientes de Colaboradores")
-
-    docs_requeridos_ids = (
-        df_catalogo_docs[df_catalogo_docs['requerido'] == True]['id'].tolist()
-        if not df_catalogo_docs.empty else []
-    )
-    n_docs_requeridos = len(docs_requeridos_ids)
-
-    colaboradores_ids = (
-        df_colaboradores[df_colaboradores['activo'] == True]['id_colaborador'].tolist()
-        if not df_colaboradores.empty else []
-    )
-    n_colaboradores = len(colaboradores_ids)
-
-    if not df_archivos.empty and n_docs_requeridos > 0 and n_colaboradores > 0:
-        df_req = df_archivos[
-            (df_archivos['id_colaborador'].isin(colaboradores_ids)) &
-            (df_archivos['id_documento'].isin(docs_requeridos_ids))
-        ].copy()
-        docs_ok_por_colab = (
-            df_req[df_req['estatus_pdf'] == True]
-            .groupby('id_colaborador')['id_documento']
-            .nunique()
-        )
-        n_completos = int((docs_ok_por_colab >= n_docs_requeridos).sum())
-    else:
-        n_completos = 0
-
-    n_faltantes   = n_colaboradores - n_completos
-    pct_completos = (n_completos / n_colaboradores * 100) if n_colaboradores > 0 else 0.0
-
-    col10, col11, col12, col13 = st.columns(4)
-    col10.metric(label='Expedientes Totales',     value=n_colaboradores)
-    col11.metric(label='Expedientes Completos',   value=n_completos,  delta=f"{pct_completos:.1f}%")
-    col12.metric(label='Expedientes Faltantes',   value=n_faltantes,  delta=f"{100 - pct_completos:.1f}%", delta_color="inverse")
-    col13.metric(label='% Expedientes Completos', value=f"{pct_completos:.1f}%")
-
-    st.divider()
-
-    if not df_colaboradores.empty and not df_catalogo_docs.empty and not df_archivos.empty:
-        df_colab_activos = df_colaboradores[df_colaboradores['activo'] == True].copy()
-        df_docs_req      = df_catalogo_docs[df_catalogo_docs['requerido'] == True].copy()
-
-        docs_entregados = (
-            df_archivos[
-                df_archivos['id_documento'].isin(docs_requeridos_ids) &
-                df_archivos['id_colaborador'].isin(colaboradores_ids) &
-                (df_archivos['estatus_pdf'] == True)
-            ][['id_colaborador', 'id_documento']]
-            .drop_duplicates()
-        )
-
-        docs_por_colab = docs_entregados.groupby('id_colaborador')['id_documento'].nunique()
-        completos_ids  = set(docs_por_colab[docs_por_colab >= n_docs_requeridos].index)
-        df_colab_activos['Estatus'] = df_colab_activos['id_colaborador'].apply(
-            lambda x: 'COMPLETO' if x in completos_ids else 'INCOMPLETO'
-        )
-
-        entregados_set = set(zip(docs_entregados['id_colaborador'], docs_entregados['id_documento']))
-        doc_ids        = df_docs_req['id'].tolist()
-        doc_nombres    = df_docs_req['nombre_documento'].tolist()
-
-        df_wide = df_colab_activos[[
-            'id_colaborador', 'nombre_completo', 'empresa', 'plaza', 'departamento', 'puesto', 'Estatus'
-        ]].copy()
-
-        for doc_id, doc_nombre in zip(doc_ids, doc_nombres):
-            df_wide[doc_nombre] = df_wide['id_colaborador'].apply(
-                lambda cid, did=doc_id: (cid, did) in entregados_set
-            )
-
-        df_wide = (
-            df_wide
-            .drop(columns=['id_colaborador'])
-            .sort_values('nombre_completo', ascending=True)
-            .reset_index(drop=True)
-            .rename(columns={
-                'nombre_completo': 'Colaborador',
-                'empresa':         'Empresa',
-                'plaza':           'Plaza',
-                'departamento':    'Departamento',
-                'puesto':          'Puesto',
-            })
-        )
-
-        def _reset_exp_page():
-            st.session_state['exp_page'] = 0
-
-        col_busq, col_fest, col_femp = st.columns([3, 1, 2])
-        with col_busq:
-            busqueda = st.text_input(
-                ":material/search: Buscar",
-                placeholder="Colaborador o empresa...",
-                key="exp_busqueda",
-                on_change=_reset_exp_page,
-            )
-        with col_fest:
-            filtro_estatus = st.selectbox(
-                "Estatus",
-                ["Todos", "COMPLETO", "INCOMPLETO"],
-                key="exp_filtro_estatus",
-                on_change=_reset_exp_page,
-            )
-        with col_femp:
-            empresas_disp = sorted(df_wide['Empresa'].dropna().unique().tolist())
-            filtro_empresa = st.multiselect(
-                "Empresa",
-                empresas_disp,
-                key="exp_filtro_empresa",
-                on_change=_reset_exp_page,
-            )
-
-        if busqueda.strip():
-            termino = busqueda.strip()
-            mask = (
-                df_wide['Colaborador'].str.contains(termino, case=False, na=False) |
-                df_wide['Empresa'].str.contains(termino, case=False, na=False)
-            )
-            df_wide = df_wide[mask].reset_index(drop=True)
-        if filtro_estatus != "Todos":
-            df_wide = df_wide[df_wide['Estatus'] == filtro_estatus].reset_index(drop=True)
-        if filtro_empresa:
-            df_wide = df_wide[df_wide['Empresa'].isin(filtro_empresa)].reset_index(drop=True)
-
-        PAGE_SIZE   = 15
-        total_filas = len(df_wide)
-        total_pags  = max(1, -(-total_filas // PAGE_SIZE))
-
-        if 'exp_page' not in st.session_state:
-            st.session_state['exp_page'] = 0
-        st.session_state['exp_page'] = min(st.session_state['exp_page'], total_pags - 1)
-
-        col_prev, col_info, col_next = st.columns([1, 4, 1])
-        with col_prev:
-            if st.button('← Anterior', key='exp_prev', disabled=st.session_state['exp_page'] == 0):
-                st.session_state['exp_page'] -= 1
-                st.rerun()
-        with col_info:
-            inicio = st.session_state['exp_page'] * PAGE_SIZE + 1
-            fin    = min(inicio + PAGE_SIZE - 1, total_filas)
-            st.caption(f"Mostrando {inicio}–{fin} de {total_filas} colaboradores · Página {st.session_state['exp_page'] + 1} de {total_pags}")
-        with col_next:
-            if st.button('Siguiente →', key='exp_next', disabled=st.session_state['exp_page'] >= total_pags - 1):
-                st.session_state['exp_page'] += 1
-                st.rerun()
-
-        start   = st.session_state['exp_page'] * PAGE_SIZE
-        df_page = df_wide.iloc[start : start + PAGE_SIZE]
-
-        col_config = {
-            doc: st.column_config.CheckboxColumn(doc, disabled=True)
-            for doc in doc_nombres
-        }
-
-        st.dataframe(
-            df_page,
-            hide_index=True,
-            use_container_width=True,
-            column_config=col_config,
-        )
-    else:
-        st.info("No hay datos de expedientes disponibles.")
+    render_tab_expedientes(df_catalogo_docs, df_colaboradores, df_archivos)

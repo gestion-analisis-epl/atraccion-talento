@@ -6,6 +6,7 @@ from streamlit_echarts import st_echarts
 from utils.vars_efiencia import variables_actividades, variables_eficiencia
 from utils.funciones_dashboard import calcular_dias_cobertura, filtrar_datos, MEXICO_TZ
 from utils.auth import require_login
+from utils.tabla_interactiva import render_interactive_table
 
 require_login()
 
@@ -139,7 +140,7 @@ with tab_eficiencia:
             seleccion_final, seguimiento,
         ],
     })
-    st.dataframe(df_actividades, hide_index=True)
+    render_interactive_table(df_actividades, height=360)
 
     st.divider()
 

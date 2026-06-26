@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from utils.funciones_dashboard import calcular_dias_cobertura
+from utils.tabla_interactiva import render_interactive_table
 from config.opciones import EMPRESAS_NOMBRE_CORTO, MESES_ES
 from streamlit_echarts import st_echarts, JsCode
 from streamlit_pivot import st_pivot_table
@@ -378,7 +379,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                 st.write('### Resumen de Vacantes por Empresa')
                 col1, col2 = st.columns([2, 2])
                 with col1:
-                    st.dataframe(resumen, hide_index=True)
+                    render_interactive_table(resumen, height=360)
 
                 options = {
                     "color": [_TEAL],
@@ -425,7 +426,7 @@ def grafica_vacantes_por_area(df_vacantes):
 
                 col1, col2 = st.columns([2, 2])
                 with col1:
-                    st.dataframe(resumen, hide_index=True)
+                    render_interactive_table(resumen, height=360)
 
                 options = {
                     "color": [_TEAL, _INDIGO],
@@ -642,10 +643,10 @@ def promedio_plaza_puesto(df_vacantes_cerradas_filtrado):
                 puesto_mas_alto = st.metric(label=df_puesto.iloc[0]['Puesto'], value=f"{df_puesto.iloc[0]['Días de cobertura']:.0f} días")
 
             with row_container:
-                tabla_plaza = st.dataframe(df_plaza, hide_index=True)
-                tabla_puesto = st.dataframe(df_puesto, hide_index=True)
+                render_interactive_table(df_plaza, height=460)
+                render_interactive_table(df_puesto, height=460)
 
-            return plaza_mas_alta, promedio_general, tabla_plaza, tabla_puesto
+            return plaza_mas_alta, promedio_general, None, None
 
     except Exception as e:
         logger.error("Error en promedio_plaza_puesto: %s", e, exc_info=True)
