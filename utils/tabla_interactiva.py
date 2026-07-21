@@ -44,7 +44,8 @@ _TABLE_TEMPLATE = r"""<!DOCTYPE html>
   --bi-bg:#450a0a;--bi-txt:#f87171;--bi-brd:#991b1b;
 }}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;background:var(--bg);color:var(--txt)}
+html,body{background:transparent}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:var(--txt)}
 #toolbar{display:flex;justify-content:flex-end;align-items:center;padding:4px 0 8px;gap:10px;font-size:12px;color:var(--txt2)}
 #ps{padding:3px 8px;border:1px solid var(--brd);border-radius:4px;font-size:12px;cursor:pointer;background:var(--bg);color:var(--txt)}
 .tw{overflow-x:auto;overflow-y:auto;max-height:__MAXH__px;border:1px solid var(--brd);border-radius:6px 6px 0 0;background:var(--bg)}
@@ -98,7 +99,7 @@ tr:hover td{background:var(--hov)}
 <div id="toolbar">
   <label>Filas por página:&nbsp;<select id="ps">
     <option value="10" selected>10</option>
-    <option value="15" selected>15</option>
+    <option value="15">15</option>
     <option value="25">25</option>
     <option value="50">50</option>
   </select></label>

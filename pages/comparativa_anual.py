@@ -4,6 +4,7 @@ import calendar
 from datetime import date
 from st_supabase_connection import SupabaseConnection
 from utils.auth import require_login
+from config.opciones import AREAS
 from utils.funciones_comparativa import (
     metricas_comparativas,
     grafica_comparativa_agrupada,
@@ -42,7 +43,7 @@ df_altas["contratados_alta"] = df_altas["contratados_alta"].astype(int)
 
 data_vacantes = (
     conn.table("vacantes")
-    .select("id, fecha_solicitud, tipo_solicitud, fase_proceso, vacantes_contratados")
+    .select("id, fecha_solicitud, tipo_solicitud, fase_proceso, vacantes_contratados, funcion_area_vacante")
     .execute()
 )
 df_vacantes = pd.DataFrame(data_vacantes.data)
@@ -51,6 +52,16 @@ if not df_vacantes.empty:
     df_vacantes["vacantes_contratados"] = (
         pd.to_numeric(df_vacantes["vacantes_contratados"], errors="coerce").fillna(0).astype(int)
     )
+
+area_seleccionada = st.selectbox(
+    ":material/filter_alt: Función de área",
+    ["Todas"] + list(AREAS),
+    index=0,
+)
+if area_seleccionada != "Todas":
+    df_altas = df_altas[df_altas["area_alta"] == area_seleccionada]
+    if not df_vacantes.empty:
+        df_vacantes = df_vacantes[df_vacantes["funcion_area_vacante"] == area_seleccionada]
 
 hoy  = date.today()
 AÑOS = [2024, 2025, 2026]
