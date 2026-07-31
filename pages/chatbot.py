@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import json
 import re
+import uuid
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -21,6 +22,10 @@ st.caption("Escribe tu consulta de forma clara y específica. Indica si la infor
 # Inicializar historial
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+# Inicializar identificador de sesión (persiste mientras dure la sesión del navegador)
+if "chatbot_session_id" not in st.session_state:
+    st.session_state.chatbot_session_id = str(uuid.uuid4())
 
 # Mostrar historial de chat
 for msg in st.session_state.messages:
@@ -66,8 +71,18 @@ if prompt := st.chat_input("Escribe tu pregunta (ej: 'Grafica las vacantes por �
             try:
                 # Petición a n8n
                 history = st.session_state.messages[-MAX_HISTORY:]
-                resp = requests.post(N8N_WEBHOOK_URL, json={"message": prompt, "history": history}, timeout=60)
-                resp.raise_for_status()
+                payload = {
+                    "message": prompt,
+                    "history": history,
+                    "session_id": st.session_state.chatbot_session_id,
+                }
+                resp = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=60)
+                if not resp.ok:
+                    st.error(f"n8n respondió con error {resp.status_code}: {resp.text[:500]}")
+                    st.stop()
+                if not resp.text.strip():
+                    st.error(f"n8n respondió vacío (status {resp.status_code}). El workflow probablemente falla antes del nodo de respuesta.")
+                    st.stop()
                 raw_data = resp.json()
 
                 # Procesar la respuesta con nuestra función robusta
@@ -105,6 +120,8 @@ if prompt := st.chat_input("Escribe tu pregunta (ej: 'Grafica las vacantes por �
 
             except requests.exceptions.Timeout:
                 st.error("La base de datos tardó demasiado en responder. Intenta con una consulta más específica.")
+            except requests.exceptions.ConnectionError as e:
+                st.error(f"No se pudo conectar a n8n: {e}")
             except Exception as e:
                 logger.error("Hubo un problema al procesar la respuesta: %s", e, exc_info=True)
-                st.error("Ocurrió un error inesperado. Por favor recarga la página.")
+                st.error(f"Error: {type(e).__name__}: {e}")

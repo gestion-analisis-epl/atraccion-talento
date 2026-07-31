@@ -337,7 +337,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                 df_detalle = df[[
                     'id_sistema', 'fecha_autorizacion', 'empresa_vacante', 'puesto_vacante',
                     'plaza_vacante', 'vacantes_solicitadas', 'dias_cobertura_calculados',
-                    'confidencial', 'fase_proceso',
+                    'confidencial', 'fase_proceso', 'funcion_area_vacante',
                 ]].copy()
                 df_detalle['fecha_autorizacion'] = df_detalle['fecha_autorizacion'].dt.date
                 df_detalle = df_detalle.rename(columns={
@@ -349,6 +349,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                     "vacantes_solicitadas": "Vacantes",
                     "dias_cobertura_calculados": "Días de cobertura",
                     "fase_proceso": "Fase de proceso",
+                    "funcion_area_vacante": "Área",
                 })
                 df_grafico = df_detalle.copy()
                 df_grafico['Empresa'] = df_grafico['Empresa'].replace(EMPRESAS_NOMBRE_CORTO)
@@ -360,7 +361,7 @@ def grafica_vacantes_por_empresa(df_vacantes):
                 st_pivot_table(
                     df_detalle,
                     key='pivot_table_vacantes',
-                    rows=['ID', 'Empresa', 'Puesto'],
+                    rows=['ID', 'Empresa', 'Puesto', 'Área'],
                     values=['Vacantes', 'Días de cobertura'],
                     aggregation={'Vacantes': 'sum', 'Días de cobertura': 'avg'},
                     conditional_formatting=[{

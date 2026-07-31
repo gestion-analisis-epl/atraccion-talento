@@ -89,3 +89,5 @@ htmlcov/
 *.xls
 datos_sensibles/
 prompt.md
+sql_script.py
+upsert_bajas.py
