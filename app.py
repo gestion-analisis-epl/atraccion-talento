@@ -1,6 +1,11 @@
 import streamlit as st
 import bcrypt
 from datetime import datetime, timedelta, timezone
+
+# Compatibilidad: streamlit_cookies_manager usa el st.cache legado
+# (deprecado y removido en versiones recientes de Streamlit).
+st.cache = st.cache_resource
+
 from streamlit_cookies_manager import EncryptedCookieManager
 from styles.styles import estilo_metricas, estilo_dashboard
 from utils.logger import get_logger
